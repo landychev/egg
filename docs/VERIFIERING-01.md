@@ -31,7 +31,9 @@ Apache-testet använde separata testversioner och tillfälliga kataloger. Det be
 - [ ] **01.13:** byggfel lämnar befintlig version aktiv; automatisk/manuell återställning och rensning har provats på Linux.
 - [ ] **01.14:** synlig ändring har gått från lokal dator via GitHub till den publika HTTPS-adressen; en äldre öppen session har provats.
 
-Servern svarade på SSH men nekade tillgänglig nyckel. Ägaren använder lösenordsinloggning. Ingen serverkonfiguration, DNS eller certifikat har ändrats. Uppgiven Debian-version 13.7 är ännu inte verifierad mot serverns systemfiler.
+Serverinventering 2026-10-06, via ägarens kommandoutskrift: Debian 13.7 bekräftad; Apache listar flera aktiva webbplatser på port 80 och 443 men ingen VirtualHost för egg.landychev.se; Certbot listar inget certifikat för den domänen. En separat DNS-kontroll gav en A-post och ingen AAAA-post. HTTP svarade med 301 till HTTPS; korrekt webbplatsinnehåll och HTTPS-certifikat är fortfarande overifierade.
+
+Ägaren använder lösenordsinloggning; den tillgängliga SSH-nyckeln nekades. Ingen serverkonfiguration, DNS eller certifikat har ändrats. Byggmiljö, Certbot-plugin, användare och mappar återstår att inventera innan installation.
 
 Hela huvuduppgift 1 är därför fortfarande öppen. [SERVER.md](SERVER.md) beskriver nästa steg.
 

@@ -1,6 +1,6 @@
 # Egg Catcher på Debian, Apache och Certbot
 
-Förberett 2026-10-06. Uppgiven server: Debian 13.7. SSH-adress och personligt användarnamn anges separat och lagras inte i repot. Apache har redan flera webbplatser och Certbot är installerat. Servermiljön och DNS är ännu inte kontrollerade eftersom den tillgängliga SSH-nyckeln inte gav inloggning.
+Uppdaterat 2026-10-06. Debian 13.7 är verifierat via ägarens serverutskrift. Apache har flera aktiva webbplatser på port 80 och 443, men ingen aktiv VirtualHost för egg.landychev.se. Certbots certifikatlista saknar också den domänen. DNS-kontrollen gav en A-post och ingen AAAA-post; HTTP svarade med 301 till HTTPS. Detta verifierar ännu inte rätt innehåll eller ett giltigt certifikat för Egg Catcher. SSH-adress och personligt användarnamn anges separat och lagras inte i repot. Serverns arkitektur, byggverktyg, Certbot-plugin och eventuella befintliga Egg-mappar återstår att kontrollera.
 
 Målet är `https://egg.landychev.se/`. Följ första installationen i ordning och kontrollera resultatet mellan avsnitten. Kommandona nedan är installationsanvisningar, inte en redovisning av redan utförda serverändringar.
 

@@ -54,6 +54,8 @@ När resurser från `public/` laddas i Phaser ska adressen byggas med `import.me
 
 Repo: `git@github.com:landychev/egg.git`. Publiceringsgren: `main`.
 
+På Debian ligger Git-klonen i `/home/landy/github-proj/egg`. Som `landy` kör du `bash scripts/deploy.sh` därifrån. Färdiga versioner hamnar i `/var/www/egg/releases/`; Apache visar `/var/www/egg/current`. Första installationen av katalogbehörigheter, Node och Apache/HTTPS beskrivs i serverguiden.
+
 Kontrollera och provspela ändringar före commit och push. Servern hämtar en exakt commit, installerar med låsfilen och bygger separat. En färdig version aktiveras genom ett atomiskt byte av `current`. Kontrollen jämför commit, startsida och filernas SHA-256; vid fel efter bytet återställs föregående version.
 
 Se [serverguiden](docs/SERVER.md) för Apache, Certbot, första installation, uppdatering och återställning. Se [kontrollprotokollet](docs/VERIFIERING-01.md) för vad som faktiskt har provats och vad som återstår på Debian.

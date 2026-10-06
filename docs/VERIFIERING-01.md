@@ -16,6 +16,8 @@ Datum: 2026-10-06. Lokal miljö: macOS ARM64. Projektets Node 24.21.0 användes 
 - [x] Webbkontrollen avvisade fel version och avsiktligt skadad JavaScript genom jämförelse av SHA-256. Testskadan återställdes.
 - [x] HTTP-kontroll: startsida och versionsfil fick `no-store`; versionsspecifik JavaScript fick `public, max-age=31536000, immutable`.
 
+- [x] Sökvägsändringen till `/var/www/egg`: Bash-syntaxkontroll av skript och serverguidens kommandoblock samt `httpd -t` av den uppdaterade Apache-mallen passerade. Apache-provet använde tillfälliga lokala kataloger; serverns verkliga behörigheter är ännu inte provade.
+
 Apache-testet använde separata testversioner och tillfälliga kataloger. Det bevisar inte att hela Linux-skriptet har körts på Debian: automatisk återställning, `flock`, rensning och serverns faktiska behörigheter återstår att verifiera där.
 
 ## GitHub
@@ -26,14 +28,14 @@ Apache-testet använde separata testversioner och tillfälliga kataloger. Det be
 
 ## Kvar på Debian
 
-- [ ] **01.11:** inventering, separat användare, Node, Apache VirtualHost, DNS och HTTPS.
+- [ ] **01.11:** återstående inventering, katalogbehörigheter för `landy`, Node, Apache VirtualHost och HTTPS.
 - [ ] **01.12:** riktig publicering genom skriptet och test av samtidighetslåset.
 - [ ] **01.13:** byggfel lämnar befintlig version aktiv; automatisk/manuell återställning och rensning har provats på Linux.
 - [ ] **01.14:** synlig ändring har gått från lokal dator via GitHub till den publika HTTPS-adressen; en äldre öppen session har provats.
 
 Serverinventering 2026-10-06, via ägarens kommandoutskrift: Debian 13.7 bekräftad; Apache listar flera aktiva webbplatser på port 80 och 443 men ingen VirtualHost för egg.landychev.se; Certbot listar inget certifikat för den domänen. En separat DNS-kontroll gav en A-post och ingen AAAA-post. HTTP svarade med 301 till HTTPS; korrekt webbplatsinnehåll och HTTPS-certifikat är fortfarande overifierade.
 
-Ägaren använder lösenordsinloggning; den tillgängliga SSH-nyckeln nekades. Ingen serverkonfiguration, DNS eller certifikat har ändrats. Byggmiljö, Certbot-plugin, användare och mappar återstår att inventera innan installation.
+Ägaren använder lösenordsinloggning; den tillgängliga SSH-nyckeln nekades. Ingen serverkonfiguration, DNS eller certifikat har ändrats. Ägaren har valt `/home/landy/github-proj/egg` för Git-klonen och `/var/www/egg` för publiceringen. Uppdateringar körs som `landy`. Skript, Apache-mall och guide har anpassats; byggmiljö, Certbot-plugin och katalogbehörigheter behöver fortfarande verifieras på servern.
 
 Hela huvuduppgift 1 är därför fortfarande öppen. [SERVER.md](SERVER.md) beskriver nästa steg.
 

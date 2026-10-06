@@ -225,7 +225,7 @@ Versionshantera källkod, dokumentation, låsfil och uppdateringsskript. Kontrol
 - Kontrollera Debian-version och befintlig serverkonfiguration före ändringar.
 - Ordna Git, vald Node.js-version och npm.
 - Ordna en webbserver. Nginx är ett förslag; slutligt val görs utifrån serverns befintliga miljö.
-- Använd en särskild användare för uppdateringar och ge åtkomst till rätt mappar.
+- Kör uppdateringar som `landy` enligt det valda serverupplägget: Git-klon i `/home/landy/github-proj/egg`, publicering i `/var/www/egg`. Ge användaren skrivåtkomst till just webbplatsens katalog.
 - Skapa platser för hämtad källkod, byggda versioner och loggar.
 - Ge servern läsbehörighet till GitHub. För ett privat repo kan en läsbehörig deploy-nyckel användas.
 - Bestäm publiceringsadress, eventuell undermapp och HTTPS. Anpassa resursadresserna i bygget till publiceringsplatsen.

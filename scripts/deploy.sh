@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Debian / GNU coreutils. Run as eggdeploy, never root.
+# Debian / GNU coreutils. Run as the repository owner (landy on the server), never root.
 set -Eeuo pipefail
 umask 022
 
 SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 REPO=${EGG_REPO:-$(dirname -- "$SCRIPT_DIR")}
-ROOT=${EGG_ROOT:-/srv/egg}
+ROOT=${EGG_ROOT:-/var/www/egg}
 BRANCH=${EGG_BRANCH:-main}
 URL=${EGG_URL:-https://egg.landychev.se}
 ACTION=${1:-deploy}
 
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 [[ $(uname -s) == Linux ]] || fail 'Deployment requires Linux (Debian).'
-[[ $EUID -ne 0 ]] || fail 'Run as eggdeploy, not root.'
+[[ $EUID -ne 0 ]] || fail 'Run as landy, not root. Switch user with: su - landy'
 [[ $ROOT == /* && $ROOT != / ]] || fail 'EGG_ROOT must be an absolute application directory.'
 [[ -d $ROOT && -w $ROOT ]] || fail "Create and grant ownership of $ROOT first."
 ROOT=$(realpath -- "$ROOT")

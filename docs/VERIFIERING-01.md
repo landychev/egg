@@ -39,6 +39,12 @@ Detta verifierar skriptet i testmiljön. Publicering, felhantering, Apache och H
 - [x] Gren `main` och fjärråtkomst verifierade.
 - [x] **01.10:** implementationen pushades som `153ef8898d2a770e73b6917709da313f347c5479`. `git ls-remote` bekräftade samma commit på GitHubs `main`. Efterföljande ändringar i detta protokoll är dokumentation av kontrollen.
 
+## Första serverkörningen 2026-10-06
+
+- [x] `deploy.sh deploy` kördes som root: hämtning, `npm ci`, typkontroll och bygge av `20d8058` lyckades. Webbkontrollen före aktivering avbröt med `ERR_TLS_CERT_ALTNAME_INVALID` (certifikat för `donkey.landychev.se`), eftersom ingen HTTPS-vhost fanns för domänen. Aktiv version lämnades orörd – ett riktigt test av "stoppa före publicering".
+- [x] Åtgärd: mallen fick egen HTTPS-vhost i `<IfFile>`, och skriptet installerar nu konfigurationen och hämtar certifikat automatiskt (`configure_apache`). Provat i container med Apache 2.4: upprepad körning oförändrad, ändrad mall ersatt med backup, trasig mall återställd efter misslyckad configtest, HTTP 301 → HTTPS, `no-store`/`immutable` enligt plan. Integrationstestet (10 kontroller) passerade med `EGG_APACHE=0`.
+- [ ] Återstår: körning på den riktiga servern efter push.
+
 ## Kvar på Debian
 
 - [ ] **01.11:** återstående inventering, katalogbehörigheter för `www-data`, Apache VirtualHost och HTTPS.

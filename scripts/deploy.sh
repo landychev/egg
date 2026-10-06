@@ -8,7 +8,9 @@ ROOT=${EGG_ROOT:-/var/www/egg}
 STATE=${EGG_STATE_ROOT:-/var/lib/egg-deploy}
 BRANCH=${EGG_BRANCH:-main}
 URL=${EGG_URL:-https://egg.landychev.se}
+APACHE=${EGG_APACHE:-1}
 ACTION=${1:-deploy}
+HOST=${URL#*://}; HOST=${HOST%%/*}; HOST=${HOST%%:*}
 fail() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
 [[ $(uname -s) == Linux ]] || fail 'Deployment requires Linux (Debian).'
 [[ $EUID -eq 0 ]] || fail 'Run this script as root.'
@@ -96,6 +98,60 @@ from_label() {
     printf '%s\n' "$ROOT/releases/$1"
   fi
 }
+configure_apache() {
+  # Install the site file from the repo, enable modules/site, obtain the
+  # Let's Encrypt certificate when EGG_URL is https, reload only on change.
+  local src="$REPO/deploy/apache/$HOST.conf" dst="/etc/apache2/sites-available/$HOST.conf"
+  local changed=0 saved='' module
+  [[ $APACHE == 1 ]] || { printf 'Apache configuration skipped (EGG_APACHE=%s).\n' "$APACHE"; return 0; }
+  for tool in apache2ctl a2enmod a2ensite systemctl cmp; do
+    command -v "$tool" >/dev/null || fail "Missing tool: $tool (set EGG_APACHE=0 to skip Apache handling)"
+  done
+  [[ -f $src && ! -L $src ]] || fail "Apache template missing: $src"
+  [[ ! -L $dst ]] || fail "Refusing to replace a symlink: $dst"
+  ensure_dir "$STATE/apache-backups" root 700
+  if ! cmp -s -- "$src" "$dst"; then
+    [[ -e /root/apache-before-egg.tar.gz ]] || tar -czf /root/apache-before-egg.tar.gz -C / etc/apache2
+    if [[ -f $dst ]]; then
+      saved="$STATE/apache-backups/$HOST.conf.$(date -u +%Y%m%dT%H%M%SZ)"
+      cp -a -- "$dst" "$saved"
+    fi
+    install -m 644 -- "$src" "$dst"
+    printf 'Installed Apache site %s\n' "$dst"
+    changed=1
+  fi
+  for module in headers ssl alias; do
+    [[ -e /etc/apache2/mods-enabled/$module.load ]] || { a2enmod -q "$module"; changed=1; }
+  done
+  [[ -e /etc/apache2/sites-enabled/$HOST.conf ]] || { a2ensite -q "$HOST.conf"; changed=1; }
+  if [[ $changed == 1 ]]; then
+    if ! apache2ctl configtest; then
+      if [[ -n $saved ]]; then cp -a -- "$saved" "$dst"; else a2dissite -q "$HOST.conf"; fi
+      fail "Apache configtest failed; previous site configuration restored."
+    fi
+    systemctl reload apache2
+  fi
+  if [[ $URL == https://* ]]; then
+    local cert="/etc/letsencrypt/live/$HOST/fullchain.pem"
+    if [[ ! -e $cert ]]; then
+      command -v certbot >/dev/null || fail 'certbot is missing; cannot obtain the HTTPS certificate.'
+      printf 'Requesting Let'"'"'s Encrypt certificate for %s\n' "$HOST"
+      certbot certonly --apache --non-interactive --agree-tos --cert-name "$HOST" -d "$HOST" \
+        --keep-until-expiring --deploy-hook 'systemctl reload apache2' \
+        ${EGG_CERTBOT_EMAIL:+-m "$EGG_CERTBOT_EMAIL"} 9>&-
+      [[ -e $cert ]] || fail 'certbot finished without a certificate.'
+      apache2ctl configtest
+      systemctl reload apache2
+    fi
+    # The HTTPS vhost is inside <IfFile>; make sure Apache actually serves it.
+    if ! apache2ctl -S 2>/dev/null | grep -Eq "(:443|port 443 namevhost)[[:space:]]+${HOST//./\\.}([[:space:]]|\$)"; then
+      systemctl reload apache2
+      apache2ctl -S 2>/dev/null | grep -Eq "(:443|port 443 namevhost)[[:space:]]+${HOST//./\\.}([[:space:]]|\$)" \
+        || fail "Apache does not serve $HOST on port 443; check apache2ctl -S for a conflicting vhost."
+    fi
+  fi
+  printf 'Apache ready for %s\n' "$URL"
+}
 recover_pending() {
   local entries old previous target
   [[ ! -L $STATE/pending ]] || return 1
@@ -146,6 +202,7 @@ if [[ $ACTION == prepare ]]; then
     chmod 644 "$ROOT/bootstrap/index.html"
     set_pointer current "$ROOT/bootstrap"
   fi
+  configure_apache
   printf 'Prepared %s; existing active version preserved.\n' "$ROOT"
   exit 0
 fi
@@ -175,13 +232,22 @@ check_release() { node_cmd "$SCRIPT_DIR/check-release.mjs" "$1" "${2:-}" "$(base
 verify_web() { node_cmd "$SCRIPT_DIR/verify-deployment.mjs" "$URL" "$1/version.json" "$2"; }
 
 if [[ $ACTION == deploy ]]; then
-  for tool in git npm runuser; do command -v "$tool" >/dev/null || fail "Missing tool: $tool"; done
+  for tool in git npm; do command -v "$tool" >/dev/null || fail "Missing tool: $tool"; done
+  configure_apache
   REPO=$(realpath -e -- "$REPO")
   [[ -e $REPO/.git ]] || fail 'EGG_REPO must be the Git checkout.'
-  GIT_USER=${EGG_GIT_USER:-$(stat -c %U "$REPO/.git")}
-  id "$GIT_USER" >/dev/null || fail 'Unknown repository owner; set EGG_GIT_USER explicitly.'
+  # Git runs as the invoking user (root), like the manual git pull. Set
+  # EGG_GIT_USER to run it as another account via runuser instead.
+  GIT_USER=${EGG_GIT_USER:-}
+  if [[ -n $GIT_USER ]]; then
+    id "$GIT_USER" >/dev/null || fail "Unknown EGG_GIT_USER: $GIT_USER"
+    command -v runuser >/dev/null || fail 'Missing tool: runuser'
+  fi
   git_cmd() {
-    runuser -u "$GIT_USER" -- env GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes -o ConnectTimeout=15}" git -C "$REPO" "$@" 9>&-
+    local -a prefix=()
+    [[ -z $GIT_USER ]] || prefix=(runuser -u "$GIT_USER" --)
+    "${prefix[@]}" env GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -o BatchMode=yes -o ConnectTimeout=15}" \
+      git -c safe.directory="$REPO" -C "$REPO" "$@" 9>&-
   }
   [[ $(git_cmd config --get remote.origin.url) == 'git@github.com:landychev/egg.git' ]] || fail 'Unexpected GitHub origin.'
   git_cmd check-ref-format "refs/heads/$BRANCH" >/dev/null || fail 'Invalid branch.'

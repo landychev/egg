@@ -131,7 +131,7 @@ writeFileSync('dist/assets/game.js', `console.log(${JSON.stringify(label)});`);
     stack.callback(server.server_close)
     stack.callback(server.shutdown)
     env = dict(os.environ, EGG_REPO=str(checkout), EGG_ROOT=str(public),
-               EGG_STATE_ROOT=str(state), EGG_URL=f'http://127.0.0.1:{server.server_port}',
+               EGG_STATE_ROOT=str(state), EGG_URL=f'http://127.0.0.1:{server.server_port}', EGG_APACHE='0', EGG_GIT_USER='nobody',
                EGG_TEST_BUILD_LOG=str(build_log), npm_config_cache=str(base / 'npm-cache'))
 
     def deploy(*args, success=True, user=None):

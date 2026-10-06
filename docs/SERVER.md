@@ -4,13 +4,13 @@ Uppdaterat 2026-10-06. Ägarens serverutskrifter bekräftar Debian 13.7, Node.js
 
 Apache och Certbot finns redan för flera andra projekt. I den tidigare inventeringen saknades VirtualHost och certifikat för egg.landychev.se. DNS hade en A-post och ingen AAAA-post. HTTP svarade med omdirigering till HTTPS; rätt innehåll och certifikat för Egg Catcher återstår att verifiera.
 
-Målet är `https://egg.landychev.se/`. Kommandona nedan är anvisningar för servern; de har inte körts på den verkliga servern av assistenten. Kör installations- och publiceringskommandona **som root**. Git-kommandon körs som `landy` för att behålla klonens ägare och använda den användarens GitHub-åtkomst.
+Målet är `https://egg.landychev.se/`. Kommandona nedan är anvisningar för servern; de har inte körts på den verkliga servern av assistenten. Kör installations- och publiceringskommandona **som root**. Git körs också som root, både vid manuell `git pull` och inne i skriptet, så root behöver fungerande SSH-åtkomst till GitHub. Sätt `EGG_GIT_USER` om Git i stället ska köras som ett annat konto via `runuser`.
 
 ## Kataloger och ägare
 
 | Plats | Innehåll och ägare |
 | --- | --- |
-| `/home/landy/github-proj/egg` | Git-klon, ägs av `landy` |
+| `/home/landy/github-proj/egg` | Git-klon; root hämtar uppdateringar |
 | `/var/www/egg` | Webbplatsens katalog, ägs av `www-data:www-data` |
 | `/var/www/egg/releases/COMMIT` | Färdigbyggda versioner, ägs av `www-data:www-data` |
 | `/var/www/egg/current` | Länk till aktiv version; Apaches DocumentRoot |
@@ -43,15 +43,15 @@ apt-get update
 apt-get install -y git curl ca-certificates util-linux
 ```
 
-Uppdatera klonen som dess ägare, när ingen publicering körs:
+Uppdatera klonen som root, när ingen publicering körs:
 
 ```bash
-runuser -u landy -- git -C /home/landy/github-proj/egg status --short --branch
-runuser -u landy -- git -C /home/landy/github-proj/egg remote -v
-runuser -u landy -- git -C /home/landy/github-proj/egg pull --ff-only origin main
+git -C /home/landy/github-proj/egg status --short --branch
+git -C /home/landy/github-proj/egg remote -v
+git -C /home/landy/github-proj/egg pull --ff-only origin main
 ```
 
-Granska eventuella lokala ändringar före uppdateringen. `origin` ska vara `git@github.com:landychev/egg.git` och grenen `main`. Publiceringsskriptets Git-kommandon körs automatiskt som ägaren till `.git`, normalt `landy`. Root behöver därför ingen egen GitHub-nyckel. GitHub-åtkomsten för `landy` måste fungera utan interaktiv lösenordsfråga när skriptet körs. Detta är separat från din lösenordsinloggning till Debian via SSH.
+Granska eventuella lokala ändringar före uppdateringen. `origin` ska vara `git@github.com:landychev/egg.git` och grenen `main`. Skriptet kör Git som root med `safe.directory` satt till klonen, så det spelar ingen roll vem som äger katalogen. Roots GitHub-åtkomst måste fungera utan interaktiv fråga när skriptet körs. Detta är separat från din lösenordsinloggning till Debian via SSH.
 
 ## 2. Förbered webbplatsen
 
@@ -63,67 +63,53 @@ bash scripts/deploy.sh prepare
 bash scripts/deploy.sh status
 ```
 
-`prepare` skapar förberedelsesidan och `current` endast om ingen version redan är aktiv. Vid nästa körning behålls den aktiva sidan. Befintliga vanliga filer eller kataloger på platsen för `current`/`previous` skrivs inte över; skriptet avbryter då med ett tydligt fel så innehållet kan granskas.
+`prepare` skapar förberedelsesidan och `current` endast om ingen version redan är aktiv, och kör sedan samma Apache/Certbot-steg som `deploy` (se 3–4). Vid nästa körning behålls den aktiva sidan. Befintliga vanliga filer eller kataloger på platsen för `current`/`previous` skrivs inte över; skriptet avbryter då med ett tydligt fel så innehållet kan granskas.
 
-## 3. Lägg till Egg Catchers Apache-konfiguration
+## 3. Apache-konfigurationen sköts av skriptet
 
-Kontrollera först `apache2ctl -S` så att domänen inte redan används i en annan konfigurationsfil, varken på port 80 eller 443. Återanvänd i så fall den filen och granska dess innehåll. Mallen har endast `ServerName egg.landychev.se` och påverkar inte andra projekt genom wildcardnamn.
+Både `prepare` och `deploy` kör steget `configure_apache` innan något byggs:
 
-Mallen innehåller både HTTP- och HTTPS-vhost. HTTPS-blocket och omdirigeringen från HTTP ligger i `<IfFile>` och aktiveras automatiskt först när Let's Encrypt-certifikatet finns. Filen går därför att aktivera redan före Certbot; då svarar bara port 80. Utan egen HTTPS-vhost svarar annars serverns standardcertifikat (`donkey.landychev.se`) för domänen, och publiceringsskriptets webbkontroll avbryter med `ERR_TLS_CERT_ALTNAME_INVALID`.
+1. Installerar `deploy/apache/egg.landychev.se.conf` från repot till `/etc/apache2/sites-available/` om filen saknas eller skiljer sig. Första gången sparas `/root/apache-before-egg.tar.gz` med hela `/etc/apache2`; en ersatt fil kopieras till `/var/lib/egg-deploy/apache-backups/`.
+2. Aktiverar modulerna `headers`, `ssl`, `alias` och webbplatsen om de inte redan är aktiva.
+3. Kör `apache2ctl configtest` och laddar om Apache bara om något ändrats. Misslyckas testet återställs den tidigare filen och skriptet avbryter.
+4. Om `EGG_URL` är `https://` och `/etc/letsencrypt/live/egg.landychev.se/fullchain.pem` saknas körs `certbot certonly --apache` (se 4).
+5. Kontrollerar med `apache2ctl -S` att `egg.landychev.se` verkligen levereras på port 443 från vår fil. Annars avbryts körningen med hänvisning till en konkurrerande vhost.
 
-Blocket kan köras upprepade gånger. Det skapar en första säkerhetskopia och installerar mallen från repot:
+Mallen innehåller både HTTP- och HTTPS-vhost. HTTPS-blocket och omdirigeringen från HTTP ligger i `<IfFile>` och aktiveras automatiskt när certifikatet finns; före dess svarar bara port 80. Utan egen HTTPS-vhost svarar annars serverns standardcertifikat (`donkey.landychev.se`) för domänen, och webbkontrollen avbryter med `ERR_TLS_CERT_ALTNAME_INVALID`.
 
-```bash
-bash <<'APACHE'
-set -euo pipefail
-if [ ! -e /root/apache-before-egg.tar.gz ]; then
-    tar -czf /root/apache-before-egg.tar.gz /etc/apache2
-fi
-install -m 644 /home/landy/github-proj/egg/deploy/apache/egg.landychev.se.conf /etc/apache2/sites-available/egg.landychev.se.conf
-a2enmod headers ssl
-a2ensite egg.landychev.se.conf
-apache2ctl configtest
-systemctl reload apache2
-APACHE
-```
+Ändringar i Apache-konfigurationen görs i repot, inte på servern; nästa körning installerar dem. Sätt `EGG_APACHE=0` för att hoppa över hela steget, till exempel i testmiljöer utan Apache.
 
-Omladdning sker bara om konfigurationstestet lyckas. Kontrollera sedan:
+Kontrollera manuellt vid behov:
 
 ```bash
 apache2ctl -S | grep egg
 curl -I http://egg.landychev.se/
+curl -I https://egg.landychev.se/
 ```
-
-Öppna adressen och kontrollera att Egg Catchers förberedelsesida visas över HTTP. Kontrollera även de befintliga webbplatserna. Port 80 och 443 måste nå Apache utifrån, och DNS A/AAAA ska peka rätt. En AAAA-post ska bara finnas om IPv6 fungerar.
 
 ## 4. HTTPS med befintlig Certbot
 
-Kontrollera certifikatlistan innan ett certifikat skapas. Om ett certifikat redan omfattar domänen används dess befintliga namn; justera i så fall `Define EGG_CERT`/`EGG_KEY` överst i konfigurationsfilen. För ett nytt separat certifikat hämtas bara certifikatet (`certonly`); Apache-konfigurationen kommer från mallen och ändras inte av Certbot:
+Skriptet hämtar certifikatet så här första gången:
 
 ```bash
-certbot certonly --apache --cert-name egg.landychev.se -d egg.landychev.se \
+certbot certonly --apache --non-interactive --agree-tos --cert-name egg.landychev.se -d egg.landychev.se \
     --keep-until-expiring --deploy-hook "systemctl reload apache2"
-apache2ctl configtest
-systemctl reload apache2
-apache2ctl -S | grep egg
-certbot certificates
-curl -I https://egg.landychev.se/
-curl -I http://egg.landychev.se/
 ```
 
-Efter omladdningen ska `apache2ctl -S` visa `*:443 egg.landychev.se` från `egg.landychev.se.conf`, HTTPS ska svara 200 med rätt certifikat och HTTP ska svara 301 till HTTPS. `--deploy-hook` gör att Apache laddas om vid automatisk förnyelse. ACME-sökvägen `/.well-known/acme-challenge/` undantas från omdirigeringen, så förnyelsen fungerar även över HTTP.
+Bara certifikatet hämtas (`certonly`); Apache-konfigurationen kommer från mallen och ändras inte av Certbot. Serverns befintliga Certbot-konto används. Saknas konto, sätt `EGG_CERTBOT_EMAIL=din@adress` vid körningen så registreras ett. Port 80 måste nå Apache utifrån och DNS ska peka rätt; annars misslyckas utmaningen och skriptet avbryter före bygget.
 
-Kontrollera förnyelsen för det certifikatnamn som listan faktiskt visar:
+`--deploy-hook` gör att Apache laddas om vid automatisk förnyelse. ACME-sökvägen `/.well-known/acme-challenge/` undantas från omdirigeringen, så förnyelsen fungerar över HTTP. Om ett certifikat med annat namn redan omfattar domänen, justera `Define EGG_CERT`/`EGG_KEY` överst i mallen.
+
+Kontrollera förnyelsen:
 
 ```bash
+certbot certificates
 certbot renew --cert-name egg.landychev.se --dry-run
 ```
 
-Återanvänd serverns befintliga rutin för automatisk förnyelse. Apache-pluginen ska finnas i den Certbot-installation som redan används.
-
 ## 5. Publicera
 
-När domänen fungerar över HTTPS, kör som root:
+Kör som root; Apache och certifikat ordnas automatiskt i början av körningen:
 
 ```bash
 cd /home/landy/github-proj/egg
@@ -140,7 +126,9 @@ Om samma commit redan är aktiv kontrolleras filerna och webbsvaret; inget nytt 
 | `EGG_REPO` | Repot där skriptet ligger |
 | `EGG_ROOT` | `/var/www/egg` |
 | `EGG_STATE_ROOT` | `/var/lib/egg-deploy` |
-| `EGG_GIT_USER` | Ägaren till klonens `.git`, normalt `landy` |
+| `EGG_GIT_USER` | Tomt: Git körs som root. Annat konto körs via `runuser` |
+| `EGG_APACHE` | `1`. `0` hoppar över Apache/Certbot-steget |
+| `EGG_CERTBOT_EMAIL` | Tomt. Används bara om Certbot saknar konto |
 | `EGG_BRANCH` | `main` |
 | `EGG_URL` | `https://egg.landychev.se` |
 
@@ -151,7 +139,7 @@ Besök startsidan och `https://egg.landychev.se/version.json`. Versionsetiketten
 Efter kontrollerad commit och push från utvecklingsdatorn, kör som root på servern:
 
 ```bash
-runuser -u landy -- git -C /home/landy/github-proj/egg pull --ff-only origin main
+git -C /home/landy/github-proj/egg pull --ff-only origin main
 cd /home/landy/github-proj/egg
 bash scripts/deploy.sh deploy
 ```

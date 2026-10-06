@@ -54,7 +54,7 @@ När resurser från `public/` laddas i Phaser ska adressen byggas med `import.me
 
 Repo: `git@github.com:landychev/egg.git`. Publiceringsgren: `main`.
 
-På Debian ligger Git-klonen i `/home/landy/github-proj/egg`. Som **root** kör du `bash scripts/deploy.sh` därifrån. Skriptet utför Git-kommandona som klonens ägare, normalt `landy`. Färdiga versioner hamnar i `/var/www/egg/releases/`; Apache visar `/var/www/egg/current`. Webbfilerna ägs av `www-data:www-data`; privata byggen och loggar ligger i `/var/lib/egg-deploy` med root som ägare. Förberedelser och Apache/HTTPS beskrivs i serverguiden.
+På Debian ligger Git-klonen i `/home/landy/github-proj/egg`. Som **root** kör du `git pull` och sedan `bash scripts/deploy.sh` därifrån. Skriptet installerar Apache-konfigurationen från `deploy/apache/`, hämtar Let's Encrypt-certifikatet om det saknas och bygger därefter. Färdiga versioner hamnar i `/var/www/egg/releases/`; Apache visar `/var/www/egg/current`. Webbfilerna ägs av `www-data:www-data`; privata byggen och loggar ligger i `/var/lib/egg-deploy` med root som ägare. Förberedelser och Apache/HTTPS beskrivs i serverguiden.
 
 Kontrollera och provspela ändringar före commit och push. Servern hämtar en exakt commit, installerar med låsfilen och bygger separat. En färdig version aktiveras genom ett atomiskt byte av `current`. Kontrollen jämför commit, startsida och filernas SHA-256; vid fel efter bytet återställs föregående version.
 

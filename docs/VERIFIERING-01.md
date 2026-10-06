@@ -18,14 +18,20 @@ Datum: 2026-10-06. Lokal miljö: macOS ARM64. De ursprungliga kontrollerna anvä
 
 - [x] Sökvägsändringen till `/var/www/egg`: Bash-syntaxkontroll av skript och serverguidens kommandoblock samt `httpd -t` av den uppdaterade Apache-mallen passerade. Apache-provet använde tillfälliga lokala kataloger; serverns verkliga behörigheter är ännu inte provade.
 
-Apache-testet använde separata testversioner och tillfälliga kataloger. Det bevisar inte att hela Linux-skriptet har körts på Debian: automatisk återställning, `flock`, rensning och serverns faktiska behörigheter återstår att verifiera där.
+Apache-testet använde separata testversioner och tillfälliga kataloger. Linux-skriptet har därefter verifierats i en isolerad Debian-container enligt nedan. Inga tester eller ändringar har utförts på den riktiga servern av assistenten.
 
 ## Anpassning till root och Node 22
 
 - [x] Serverns Node.js 22.23.3 och npm 10.9.9 används i versionsfiler och dokumentation.
 - [x] Ren `npm ci --include=dev`, typkontroll och produktionsbygge passerade lokalt med exakt Node 22.23.3 och npm 10.9.9. Den officiella Node-distributionens SHA-256 verifierades.
 - [x] Bash- och JavaScript-syntaxkontroller passerade för de uppdaterade skripten.
-- [ ] Isolerat integrationstest som root i Debian 13: upprepad prepare/deploy/rollback/prune, ägarskap, byggfel, HTTP-fel, avbruten aktivering, låsning och skadade filer. Resultat förs in efter CI-körningen.
+- [x] [Isolerat Debian 13-test i GitHub Actions](https://github.com/landychev/egg/actions/runs/37516392348) passerade för commit `f49fb138d3ad8ca2c4405e758cf86d5428410ee2`, med Node 22.23.3. Även ren installation och riktigt produktionsbygge passerade i denna container.
+- [x] I containerns tillfälliga kataloger: upprepad `prepare`, publicering av samma commit, upprepad manifestgenerering, standard- och explicit rollback samt upprepad rensning gav avsett oförändrat resultat.
+- [x] I containern: publika filer och länkar fick `www-data` som ägare; privata kontrollfiler tillhörde root. Git kördes som klonens ägare via `runuser`, med en lokal Git-remote och en lokal HTTP-server.
+- [x] I containern: upprepade byggfel behöll aktiv version; fel i HTTP-kontrollen återställde båda pekarna; nytt försök återanvände det sparade bygget. Äldre resursadresser fungerade efter uppdatering.
+- [x] I containern: samtidig körning och körning utan root nekades. Ett faktiskt `SIGKILL` mitt under aktiveringen följdes av återställning vid nästa `status`-körning. Skadad sparad version och oväntad katalogsymlänk nekades. Rensningen skyddade aktiv version och `previous`.
+
+Detta verifierar skriptet i testmiljön. Publicering, felhantering, Apache och HTTPS på användarens riktiga Debian-server är fortfarande **oprövade**.
 
 ## GitHub
 
@@ -37,7 +43,7 @@ Apache-testet använde separata testversioner och tillfälliga kataloger. Det be
 
 - [ ] **01.11:** återstående inventering, katalogbehörigheter för `www-data`, Apache VirtualHost och HTTPS.
 - [ ] **01.12:** riktig publicering genom skriptet och test av samtidighetslåset.
-- [ ] **01.13:** byggfel lämnar befintlig version aktiv; automatisk/manuell återställning och rensning har provats på Linux.
+- [ ] **01.13:** återstår att prova byggfel, automatisk/manuell återställning och rensning på den riktiga servern. Dessa serverprov är ännu inte utförda.
 - [ ] **01.14:** synlig ändring har gått från lokal dator via GitHub till den publika HTTPS-adressen; en äldre öppen session har provats.
 
 Serverinventering 2026-10-06, via ägarens kommandoutskrift: Debian 13.7 bekräftad; Apache listar flera aktiva webbplatser på port 80 och 443 men ingen VirtualHost för egg.landychev.se; Certbot listar inget certifikat för den domänen. En separat DNS-kontroll gav en A-post och ingen AAAA-post. HTTP svarade med 301 till HTTPS; korrekt webbplatsinnehåll och HTTPS-certifikat är fortfarande overifierade.

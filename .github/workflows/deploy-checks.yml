@@ -1,0 +1,40 @@
+name: Debian deployment checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'tests/deploy/**'
+      - '.github/workflows/deploy-checks.yml'
+      - '.nvmrc'
+      - '.node-version'
+      - 'package*.json'
+      - 'src/**'
+      - 'tsconfig.json'
+      - 'vite.config.*'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  debian:
+    runs-on: ubuntu-latest
+    container: debian:13
+    timeout-minutes: 10
+    steps:
+      - name: Install test prerequisites
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl git python3 util-linux
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Build the application with the server Node version
+        run: |
+          npm ci --include=dev --no-fund --no-audit
+          npm run build
+      - name: Test root deployment and repeated invocations in temporary directories
+        run: python3 tests/deploy/integration.py

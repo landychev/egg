@@ -1,6 +1,6 @@
 # Kontrollprotokoll – uppgift 1
 
-Datum: 2026-10-06. Lokal miljö: macOS ARM64. Projektets Node 24.21.0 användes separat från datorns globala Node 26.3.1. npm följer med Node-installationen.
+Datum: 2026-10-06. Lokal miljö: macOS ARM64. De ursprungliga kontrollerna använde Node 24.21.0 separat från datorns globala Node 26.3.1. Projektet har därefter anpassats till serverns Node 22.23.3; resultat av omkontrollen redovisas nedan.
 
 ## Verifierat lokalt
 
@@ -10,7 +10,7 @@ Datum: 2026-10-06. Lokal miljö: macOS ARM64. Projektets Node 24.21.0 användes 
 - [x] **01.7:** `dev`, `typecheck`, `build` och `preview` kördes. Typfelet stoppade även `build` före Vite.
 - [x] **01.8–01.9:** README stämdes av. Ren `npm ci --include=dev` från låsfilen kördes i en separat katalog och följdes av lyckat bygge med Node 24.21.0.
 - [x] Mobilbredd 390 px: canvas 362 × 203,625 px, ingen horisontell överrinning. Desktopbredd 1280 px: canvas 1040 × 585 px. Båda behöll proportionerna 16:9.
-- [x] `bash -n scripts/deploy.sh` och Node-syntaxkontroll av båda hjälpskripten.
+- [x] `bash -n scripts/deploy.sh` och Node-syntaxkontroll av de dåvarande hjälpskripten.
 - [x] Apache 2.4.67: mallen kontrollerades med `httpd -t` och kördes isolerat på loopback. Endast lyssningsadress, sökvägar och testvärd ersattes i testkonfigurationen.
 - [x] Två riktiga byggkataloger med testmanifest: A aktiverades, B kontrollerades och aktiverades, A:s resursadresser fungerade fortfarande och pekaren återställdes till A.
 - [x] Webbkontrollen avvisade fel version och avsiktligt skadad JavaScript genom jämförelse av SHA-256. Testskadan återställdes.
@@ -20,6 +20,13 @@ Datum: 2026-10-06. Lokal miljö: macOS ARM64. Projektets Node 24.21.0 användes 
 
 Apache-testet använde separata testversioner och tillfälliga kataloger. Det bevisar inte att hela Linux-skriptet har körts på Debian: automatisk återställning, `flock`, rensning och serverns faktiska behörigheter återstår att verifiera där.
 
+## Anpassning till root och Node 22
+
+- [x] Serverns Node.js 22.23.3 och npm 10.9.9 används i versionsfiler och dokumentation.
+- [x] Ren `npm ci --include=dev`, typkontroll och produktionsbygge passerade lokalt med exakt Node 22.23.3 och npm 10.9.9. Den officiella Node-distributionens SHA-256 verifierades.
+- [x] Bash- och JavaScript-syntaxkontroller passerade för de uppdaterade skripten.
+- [ ] Isolerat integrationstest som root i Debian 13: upprepad prepare/deploy/rollback/prune, ägarskap, byggfel, HTTP-fel, avbruten aktivering, låsning och skadade filer. Resultat förs in efter CI-körningen.
+
 ## GitHub
 
 - [x] Befintligt repo återanvänt: `git@github.com:landychev/egg.git`.
@@ -28,14 +35,14 @@ Apache-testet använde separata testversioner och tillfälliga kataloger. Det be
 
 ## Kvar på Debian
 
-- [ ] **01.11:** återstående inventering, katalogbehörigheter för `landy`, Node, Apache VirtualHost och HTTPS.
+- [ ] **01.11:** återstående inventering, katalogbehörigheter för `www-data`, Apache VirtualHost och HTTPS.
 - [ ] **01.12:** riktig publicering genom skriptet och test av samtidighetslåset.
 - [ ] **01.13:** byggfel lämnar befintlig version aktiv; automatisk/manuell återställning och rensning har provats på Linux.
 - [ ] **01.14:** synlig ändring har gått från lokal dator via GitHub till den publika HTTPS-adressen; en äldre öppen session har provats.
 
 Serverinventering 2026-10-06, via ägarens kommandoutskrift: Debian 13.7 bekräftad; Apache listar flera aktiva webbplatser på port 80 och 443 men ingen VirtualHost för egg.landychev.se; Certbot listar inget certifikat för den domänen. En separat DNS-kontroll gav en A-post och ingen AAAA-post. HTTP svarade med 301 till HTTPS; korrekt webbplatsinnehåll och HTTPS-certifikat är fortfarande overifierade.
 
-Ägaren använder lösenordsinloggning; den tillgängliga SSH-nyckeln nekades. Ingen serverkonfiguration, DNS eller certifikat har ändrats. Ägaren har valt `/home/landy/github-proj/egg` för Git-klonen och `/var/www/egg` för publiceringen. Uppdateringar körs som `landy`. Skript, Apache-mall och guide har anpassats; byggmiljö, Certbot-plugin och katalogbehörigheter behöver fortfarande verifieras på servern.
+Ägaren använder lösenordsinloggning; den tillgängliga SSH-nyckeln nekades. Ingen serverkonfiguration, DNS eller certifikat har ändrats. Ägaren har valt `/home/landy/github-proj/egg` för Git-klonen och `/var/www/egg` för publiceringen. Uppdateringar ska köras som root; Git körs som klonens ägare `landy` och webbträdet ägs av `www-data`. Serverutskriften bekräftar Node 22.23.3 och npm 10.9.9 från NodeSource. Certbot-plugin, publicering och katalogbehörigheter behöver fortfarande verifieras på servern.
 
 Hela huvuduppgift 1 är därför fortfarande öppen. [SERVER.md](SERVER.md) beskriver nästa steg.
 

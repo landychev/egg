@@ -1,294 +1,203 @@
 # Egg Catcher på Debian, Apache och Certbot
 
-Uppdaterat 2026-10-06. Debian 13.7 är verifierat via ägarens serverutskrift. Apache har flera aktiva webbplatser på port 80 och 443, men ingen aktiv VirtualHost för egg.landychev.se. Certbots certifikatlista saknar också den domänen. DNS-kontrollen gav en A-post och ingen AAAA-post; HTTP svarade med 301 till HTTPS. Detta verifierar ännu inte rätt innehåll eller ett giltigt certifikat för Egg Catcher. SSH-adressen anges separat. Uppdateringar körs som `landy`. Serverns arkitektur, byggverktyg, Certbot-plugin och eventuella befintliga Egg-mappar återstår att kontrollera.
+Uppdaterat 2026-10-06. Ägarens serverutskrifter bekräftar Debian 13.7, Node.js 22.23.3 och npm 10.9.9. Node-paketet `22.23.3-1nodesource1` kommer från NodeSource. Versionen räcker för projektets Vite 8.3.3, vars Node-krav är `^20.19.0 || >=22.12.0`. Ingen separat Node-installation behövs.
 
-Målet är `https://egg.landychev.se/`. Följ första installationen i ordning och kontrollera resultatet mellan avsnitten. Kommandona nedan är installationsanvisningar, inte en redovisning av redan utförda serverändringar.
+Apache och Certbot finns redan för flera andra projekt. I den tidigare inventeringen saknades VirtualHost och certifikat för egg.landychev.se. DNS hade en A-post och ingen AAAA-post. HTTP svarade med omdirigering till HTTPS; rätt innehåll och certifikat för Egg Catcher återstår att verifiera.
 
-## Fastställda kataloger
+Målet är `https://egg.landychev.se/`. Kommandona nedan är anvisningar för servern; de har inte körts på den verkliga servern av assistenten. Kör installations- och publiceringskommandona **som root**. Git-kommandon körs som `landy` för att behålla klonens ägare och använda den användarens GitHub-åtkomst.
 
-| Plats | Innehåll |
+## Kataloger och ägare
+
+| Plats | Innehåll och ägare |
 | --- | --- |
-| `/home/landy/github-proj/egg` | Git-klon med källkod och skript |
-| `/var/www/egg/releases/` | Separata färdigbyggda versioner |
+| `/home/landy/github-proj/egg` | Git-klon, ägs av `landy` |
+| `/var/www/egg` | Webbplatsens katalog, ägs av `www-data:www-data` |
+| `/var/www/egg/releases/COMMIT` | Färdigbyggda versioner, ägs av `www-data:www-data` |
 | `/var/www/egg/current` | Länk till aktiv version; Apaches DocumentRoot |
-| `/var/www/egg/previous` | Länk till föregående version |
-| `/var/www/egg/work/` | Tillfälliga byggen, endast åtkomliga för `landy` |
-| `/var/www/egg/logs/` och `state/` | Loggar och uppgifter för återställning/rensning, endast åtkomliga för `landy` |
+| `/var/www/egg/previous` | Mål för återställning |
+| `/var/lib/egg-deploy/work/` | Tillfälliga byggen, endast root |
+| `/var/lib/egg-deploy/logs/` | Publiceringsloggar, endast root |
+| `/var/lib/egg-deploy/retired/` | Tidsstämplar för rensning, endast root |
+| `/var/lib/egg-deploy/pending` | Tillfällig journal under versionsbyte, endast root |
 
-`landy` äger projektets filer. Apache läser de färdiga filerna som `www-data`. Root används för första kataloginstallationen, Apache och Certbot. Ingen ny användare behöver skapas, och Apache behöver inte åtkomst till Git-klonen i hemkatalogen.
+Skriptet skapar kataloger som saknas. Publicerade kataloger får behörighet 755 och vanliga filer 644. Privata kontrollkataloger får 700. Apache behöver inte åtkomst till Git-klonen. Vanliga publiceringar kräver ingen omladdning av Apache.
 
-## 1. Inventera befintlig miljö
+## 1. Kontrollera miljön och uppdatera klonen
 
-På din Mac:
-
-```bash
-ssh DIN_SSH_ANVANDARE@DIN_SERVER
-```
-
-På Debian:
+Från din Mac ansluter du med `ssh landy@192.168.0.9` och går sedan till ditt root-skal på servern. Kontrollera:
 
 ```bash
-cat /etc/os-release
-cat /etc/debian_version
-sudo apache2ctl -S
-sudo apache2ctl -M
-sudo certbot certificates
-command -v node
-command -v npm
-command -v git
-getent ahosts egg.landychev.se
-ls -ld /var/www/egg
-```
-
-Att `/var/www/egg` ännu inte finns är normalt. Kontrollera att domänen inte redan finns i en annan VirtualHost. Om den gör det, granska just den konfigurationen och anpassa den i stället för att skapa en dubblering. Behåll befintliga projekt och deras konfigurationer. Vår mall använder enbart det exakta namnet `egg.landychev.se`, inga wildcardnamn.
-
-DNS A/AAAA ska peka mot serverns publika adress. Om servern ligger bakom routern behöver port 80 och 443 redan nå Apache från internet. En AAAA-post ska bara finnas om IPv6 fungerar. Certbots HTTP-kontroll måste kunna nå den här domänen utifrån.
-
-## 2. Förbered webbplatsens katalog
-
-Du kan köra följande från root-skalet som du redan har på Debian. Installera grundverktygen vid behov:
-
-```bash
-apt update
-apt install git curl ca-certificates xz-utils
-```
-
-Skapa den nya webbplatskatalogen med `landy` som ägare. Om katalogen redan finns visar blocket dess nuvarande ägare i stället för att ändra den:
-
-```bash
-if [ ! -e /var/www/egg ] && [ ! -L /var/www/egg ]; then
-    install -d -o landy -g "$(id -gn landy)" -m 755 /var/www/egg
-else
-    ls -ld /var/www/egg
-fi
-```
-
-Byt till `landy` innan du arbetar med Git, npm eller uppdateringsskriptet:
-
-```bash
-su - landy
-```
-
-Skapa förberedelsesidan före första publiceringen. Blocket avbryter om `current` redan finns och kräver att `landy` kan skriva i webbplatskatalogen:
-
-```bash
-bash <<'BOOTSTRAP'
-set -euo pipefail
-test -w /var/www/egg
-test ! -e /var/www/egg/current
-test ! -L /var/www/egg/current
-mkdir -p /var/www/egg/releases /var/www/egg/bootstrap
-printf '%s\n' '<!doctype html><html lang="sv"><meta charset="utf-8"><title>Egg Catcher</title><h1>Egg Catcher förbereds</h1></html>' > /var/www/egg/bootstrap/index.html
-chmod 755 /var/www/egg/releases /var/www/egg/bootstrap
-chmod 644 /var/www/egg/bootstrap/index.html
-ln -s /var/www/egg/bootstrap /var/www/egg/current
-BOOTSTRAP
-```
-
-Uppdateringsskriptet körs som `landy`, utan sudo. Vanliga uppdateringar kräver ingen omladdning av Apache.
-
-## 3. Installera den valda Node-versionen
-
-Vi använder den officiella binärdistributionen i en egen katalog så att andra projekts Node-versioner kan behållas. Kör detta som din administrativa användare med sudo till installationssteget:
-
-```bash
-EGG_NODE_VERSION=24.21.0
-case "$(uname -m)" in
-  x86_64) EGG_NODE_ARCH=x64 ;;
-  aarch64) EGG_NODE_ARCH=arm64 ;;
-  *) echo "Kontrollera rätt Node-distribution för serverns arkitektur"; exit 1 ;;
-esac
-EGG_NODE_TMP=$(mktemp -d)
-cd "$EGG_NODE_TMP"
-EGG_NODE_FILE="node-v${EGG_NODE_VERSION}-linux-${EGG_NODE_ARCH}.tar.xz"
-curl -fSLO "https://nodejs.org/dist/v${EGG_NODE_VERSION}/${EGG_NODE_FILE}"
-curl -fSLO "https://nodejs.org/dist/v${EGG_NODE_VERSION}/SHASUMS256.txt"
-grep "  ${EGG_NODE_FILE}$" SHASUMS256.txt | sha256sum --check --strict
-```
-
-Fortsätt bara om kontrollsumman säger **OK**. Kontrollera att målkatalogen är ledig och packa upp:
-
-```bash
-test ! -e "/opt/node-v${EGG_NODE_VERSION}-linux-${EGG_NODE_ARCH}"
-sudo tar -xJf "$EGG_NODE_FILE" -C /opt
-```
-
-I `landy`-användarens `~/.profile`, lägg till raden för serverns arkitektur, till exempel x86-64:
-
-```bash
-export PATH="/opt/node-v24.21.0-linux-x64/bin:$PATH"
-```
-
-Använd `linux-arm64` på en ARM64-server. Logga sedan in i användarmiljön:
-
-```bash
-sudo -iu landy
 node --version
 npm --version
+apache2ctl -S
+certbot certificates
+ls -ld /home/landy/github-proj/egg /var/www/egg
 ```
 
-Node ska visa `v24.21.0`. Skriptet jämför den exakta versionen med `.nvmrc` före bygge. Vid ett senare versionsbyte uppdateras både `.nvmrc`, `.node-version`, `package.json` och serverinstallationen tillsammans.
+Node ska vara `v22.23.3`, samma som `.nvmrc` och `.node-version`. Skriptet kontrollerar exakt Node-version före bygge. Vid framtida versionsbyte uppdateras dessa filer och `package.json`/låsfilens Node-krav tillsammans. npm 10.9.9 fungerar med projektets låsfil.
 
-## 4. Återanvänd Git-klonen och GitHub-åtkomsten
+Installera grundverktyg om de saknas; detta går att köra igen:
 
-Som `landy`, om klonen redan finns:
+```bash
+apt-get update
+apt-get install -y git curl ca-certificates util-linux
+```
+
+Uppdatera klonen som dess ägare, när ingen publicering körs:
+
+```bash
+runuser -u landy -- git -C /home/landy/github-proj/egg status --short --branch
+runuser -u landy -- git -C /home/landy/github-proj/egg remote -v
+runuser -u landy -- git -C /home/landy/github-proj/egg pull --ff-only origin main
+```
+
+Granska eventuella lokala ändringar före uppdateringen. `origin` ska vara `git@github.com:landychev/egg.git` och grenen `main`. Publiceringsskriptets Git-kommandon körs automatiskt som ägaren till `.git`, normalt `landy`. Root behöver därför ingen egen GitHub-nyckel. GitHub-åtkomsten för `landy` måste fungera utan interaktiv lösenordsfråga när skriptet körs. Detta är separat från din lösenordsinloggning till Debian via SSH.
+
+## 2. Förbered webbplatsen
+
+Som root:
 
 ```bash
 cd /home/landy/github-proj/egg
-git status --short --branch
-git remote -v
-git pull --ff-only origin main
-```
-
-Granska eventuella lokala ändringar före uppdatering. `origin` ska vara `git@github.com:landychev/egg.git` och grenen `main`.
-
-Om katalogen ännu inte har klonats:
-
-```bash
-mkdir -p /home/landy/github-proj
-git clone git@github.com:landychev/egg.git /home/landy/github-proj/egg
-cd /home/landy/github-proj/egg
-```
-
-Återanvänd fungerande GitHub-åtkomst för `landy`. Om GitHub nekar åtkomst behöver användarens SSH-nyckel eller en läsbehörig deploy-nyckel kopplas till repot. Privata nycklar förvaras utanför repot. En ny GitHub-värdnyckel kontrolleras mot [GitHubs dokumenterade fingerprints](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints).
-
-Git-repot innehåller källkod och skript. Apache pekar på `/var/www/egg/current` och behöver inte läsa hemkatalogen.
-
-## 5. Lägg till endast Egg Catchers Apache-konfiguration
-
-Gå tillbaka till din administrativa användare med `exit` om du står i `landy`-skalet. Säkerhetskopiera Apache-konfigurationen före första ändringen:
-
-```bash
-sudo tar -czf "/root/apache-before-egg-$(date +%Y%m%d-%H%M%S).tar.gz" /etc/apache2
-sudo test ! -e /etc/apache2/sites-available/egg.landychev.se.conf
-```
-
-Om filen redan finns: granska den först och skriv inte över den med mallen. För en ny fil:
-
-```bash
-sudo install -m 644 /home/landy/github-proj/egg/deploy/apache/egg.landychev.se.conf /etc/apache2/sites-available/egg.landychev.se.conf
-sudo a2enmod headers
-sudo a2ensite egg.landychev.se.conf
-sudo apache2ctl configtest
-```
-
-Bara om testet visar **Syntax OK**:
-
-```bash
-sudo systemctl reload apache2
-sudo apache2ctl -S
-curl -I http://egg.landychev.se/
-```
-
-Öppna adressen och kontrollera att den visar Egg Catchers förberedelsesida. Kontrollera också de befintliga projektens adresser. Inga befintliga webbplatser ska avaktiveras. Om syntaxkontrollen misslyckas: rätta den nya filen innan någon omladdning.
-
-## 6. Aktivera HTTPS med befintlig Certbot
-
-Inventera först certifikaten enligt steg 1. Om domänen redan har ett certifikat används det befintliga upplägget. För ett nytt certifikat:
-
-```bash
-sudo certbot --apache -d egg.landychev.se --redirect
-sudo apache2ctl configtest
-sudo apache2ctl -S
-sudo certbot certificates
-curl -I https://egg.landychev.se/
-```
-
-Certbot kan skapa `egg.landychev.se-le-ssl.conf`. Kontrollera att HTTPS-konfigurationen innehåller samma `DocumentRoot`, `Alias`, Directory-behörigheter och cache-regler som vår mall. Kontrollera rätt ServerName i både HTTP- och HTTPS-konfigurationen. Certbot ska bara hantera den angivna domänen.
-
-Kontrollera förnyelse med certifikatnamnet som `certbot certificates` faktiskt visar, exempelvis:
-
-```bash
-sudo certbot renew --cert-name egg.landychev.se --dry-run
-```
-
-Kontrollera den befintliga automatiska förnyelserutinen; skapa inte en extra timer om förnyelse redan är ordnad. Apache-pluginen måste finnas i den Certbot-installation du redan använder; blanda inte en snap-installation och apt-paket utan att först kontrollera upplägget.
-
-## 7. Första riktiga publiceringen
-
-Från din administrativa användare:
-
-```bash
-sudo -iu landy
-cd /home/landy/github-proj/egg
-bash scripts/deploy.sh
+bash scripts/deploy.sh prepare
 bash scripts/deploy.sh status
 ```
 
-Skriptet hämtar `main` från `origin`, väljer en exakt commit, bygger i en separat katalog och aktiverar versionen först när filkontrollen lyckats. Standardinställningar:
+`prepare` skapar förberedelsesidan och `current` endast om ingen version redan är aktiv. Vid nästa körning behålls den aktiva sidan. Befintliga vanliga filer eller kataloger på platsen för `current`/`previous` skrivs inte över; skriptet avbryter då med ett tydligt fel så innehållet kan granskas.
 
-| Variabel | Standard |
-| --- | --- |
-| `EGG_REPO` | Repot där skriptet ligger, här `/home/landy/github-proj/egg` |
-| `EGG_ROOT` | `/var/www/egg` |
-| `EGG_BRANCH` | `main` |
-| `EGG_URL` | `https://egg.landychev.se` |
+## 3. Lägg till Egg Catchers Apache-konfiguration
 
-HTTPS är standard även vid första publiceringen. Bootstrap-sidan kan återställas om det första riktiga bytet misslyckas. Ingen publik Vite-process eller extra publik port behövs.
+Kontrollera först `apache2ctl -S` så att domänen inte redan används i en annan konfigurationsfil. Återanvänd i så fall den filen och granska dess innehåll. Mallen har endast `ServerName egg.landychev.se` och påverkar inte andra projekt genom wildcardnamn.
 
-Besök startsidan och `https://egg.landychev.se/version.json`. Versionsetiketten i startscenen ska stämma med commit i `version.json`.
+När det är den här konfigurationsfilen som ska användas kan följande block köras upprepade gånger. Det skapar en första säkerhetskopia och installerar mallen bara om filen saknas. En befintlig fil, även efter Certbots ändringar, behålls:
 
-## Vanlig uppdatering och skriptversion
+```bash
+bash <<'APACHE'
+set -euo pipefail
+if [ ! -e /root/apache-before-egg.tar.gz ]; then
+    tar -czf /root/apache-before-egg.tar.gz /etc/apache2
+fi
+if [ ! -e /etc/apache2/sites-available/egg.landychev.se.conf ] && [ ! -L /etc/apache2/sites-available/egg.landychev.se.conf ]; then
+    install -m 644 /home/landy/github-proj/egg/deploy/apache/egg.landychev.se.conf /etc/apache2/sites-available/egg.landychev.se.conf
+fi
+a2enmod headers
+a2ensite egg.landychev.se.conf
+apache2ctl configtest
+systemctl reload apache2
+APACHE
+```
 
-På utvecklingsdatorn: kontrollera typer, bygg, provspela, commit och push till `main`.
+Omladdning sker bara om konfigurationstestet lyckas. Kontrollera sedan:
 
-På servern, som `landy`, när ingen annan uppdatering körs:
+```bash
+apache2ctl -S
+curl -I http://egg.landychev.se/
+```
+
+Öppna adressen och kontrollera att Egg Catchers förberedelsesida visas. Kontrollera även de befintliga webbplatserna. Port 80 och 443 måste nå Apache utifrån, och DNS A/AAAA ska peka rätt. En AAAA-post ska bara finnas om IPv6 fungerar.
+
+## 4. HTTPS med befintlig Certbot
+
+Kontrollera certifikatlistan innan ett certifikat skapas. Om ett certifikat redan omfattar domänen används dess befintliga namn och upplägg. För ett nytt separat certifikat med namnet `egg.landychev.se`:
+
+```bash
+certbot --apache --cert-name egg.landychev.se -d egg.landychev.se --redirect --keep-until-expiring
+apache2ctl configtest
+apache2ctl -S
+certbot certificates
+curl -I https://egg.landychev.se/
+```
+
+Samma certifikatnamn och `--keep-until-expiring` återanvänder ett befintligt giltigt certifikat när kommandot upprepas. Certbot kan skapa `egg.landychev.se-le-ssl.conf`. Kontrollera att HTTPS-konfigurationen innehåller samma `DocumentRoot`, `Alias`, Directory-behörigheter och cache-regler som mallen. Skriv inte över Certbots befintliga konfiguration vid senare publiceringar.
+
+Kontrollera förnyelsen för det certifikatnamn som listan faktiskt visar:
+
+```bash
+certbot renew --cert-name egg.landychev.se --dry-run
+```
+
+Återanvänd serverns befintliga rutin för automatisk förnyelse. Apache-pluginen ska finnas i den Certbot-installation som redan används.
+
+## 5. Publicera
+
+När domänen fungerar över HTTPS, kör som root:
 
 ```bash
 cd /home/landy/github-proj/egg
-git status --short
-git pull --ff-only origin main
-bash scripts/deploy.sh
+bash scripts/deploy.sh deploy
+bash scripts/deploy.sh status
 ```
 
-`git pull` uppdaterar även själva skriptet och dess hjälpfiler **innan** skriptet startas. Kör inte `git pull` samtidigt som en publicering. Skriptet loggar sin SHA-256 och den exakta spelcommit som byggs. Dess `git fetch` ändrar inte arbetskatalogen. Lokala ändringar ska först granskas; använd inte reset eller clean för att komma förbi dem.
+Skriptet hämtar `main`, väljer en exakt commit och bygger separat med `npm ci --include=dev`. Eventuellt `npm test` körs också. En komplett version får commitens fullständiga ID som katalognamn och flyttas atomiskt på publiceringsdiskens filsystem. Därefter kontrolleras innehållet via webbservern innan och efter bytet av `current`.
 
-Samtidiga körningar av publicering, återställning och rensning spärras med `flock`. Byggverktygen installeras med `npm ci --include=dev`. Om ett testkommando införs i `package.json` körs även det före bygget.
+Om samma commit redan är aktiv kontrolleras filerna och webbsvaret; inget nytt bygge eller versionsbyte görs. En redan sparad, korrekt version återanvänds. Om en sparad version är skadad avbryts körningen utan att skriva över den. Vid byggfel lämnas den aktiva versionen orörd. Vid verifieringsfel efter versionsbytet återställs `current` och `previous` från journalen.
 
-## Återställning
+| Variabel | Standard |
+| --- | --- |
+| `EGG_REPO` | Repot där skriptet ligger |
+| `EGG_ROOT` | `/var/www/egg` |
+| `EGG_STATE_ROOT` | `/var/lib/egg-deploy` |
+| `EGG_GIT_USER` | Ägaren till klonens `.git`, normalt `landy` |
+| `EGG_BRANCH` | `main` |
+| `EGG_URL` | `https://egg.landychev.se` |
+
+Besök startsidan och `https://egg.landychev.se/version.json`. Versionsetiketten i startscenen ska motsvara commit i versionsfilen.
+
+## Vanliga uppdateringar
+
+Efter kontrollerad commit och push från utvecklingsdatorn, kör som root på servern:
+
+```bash
+runuser -u landy -- git -C /home/landy/github-proj/egg pull --ff-only origin main
+cd /home/landy/github-proj/egg
+bash scripts/deploy.sh deploy
+```
+
+Uppdatera klonen före körningen så att skript och hjälpfiler följer med. Kör inte `git pull` samtidigt som publicering pågår. Skriptets egen `git fetch` ändrar inte arbetskatalogen. Loggen innehåller skriptets SHA-256 och versionens commit.
+
+Alla skriptåtgärder använder samma `flock`-lås. En andra samtidig körning avslutas med felmeddelande och lämnar den första körningen i fred. Loggfiler tillkommer vid varje körning, även när den publicerade versionen är oförändrad.
+
+## Återställning och avbrott
+
+Som root:
 
 ```bash
 cd /home/landy/github-proj/egg
 bash scripts/deploy.sh rollback
 ```
 
-Det återställer den föregående versionen utan att bygga om. Den ersatta versionen blir sedan `previous`, så samma kommando kan växla tillbaka. En sparad version kan också väljas uttryckligen:
+Det aktiverar målet i `previous` utan ombyggnad. `previous` byts inte vid rollback: upprepad rollback behåller samma version. Efter rollback kan du publicera senaste `main` igen med `deploy`, eller välja en sparad version uttryckligen:
 
 ```bash
 bash scripts/deploy.sh rollback RELEASE-ID
 ```
 
-`RELEASE-ID` är ett riktigt katalognamn i `/var/www/egg/releases`. Både manuell och automatisk återställning kontrollerar filinnehållet via webbservern. Vid misslyckad kontroll efter aktivering återställer skriptet pekaren och avslutar med felstatus. Om även den gamla versionens HTTP-kontroll misslyckas står det tydligt i loggen.
+`RELEASE-ID` ska vara ett befintligt katalognamn i `/var/www/egg/releases`. Även en upprepad explicit rollback lämnar pekarna oförändrade när rätt version redan är aktiv. Båda formerna kontrollerar innehållet lokalt och via HTTP.
 
-Loggar: `/var/www/egg/logs/`. Apache-loggar: `/var/log/apache2/egg-access.log` och `egg-error.log`.
+`SIGINT` och `SIGTERM` hanteras med automatisk återställning. Om processen dödas med `SIGKILL` finns journalen kvar; nästa körning, även `status`, återställer det avbrutna bytet innan den fortsätter. Vid ett verkligt strömavbrott ska även filsystemets och webbplatsens tillstånd kontrolleras; skriptet ger ingen garanti mot diskfel. Tillfälliga byggkataloger som blir kvar efter ett hårt avbrott kan granskas och rensas när ingen körning pågår.
+
+Publiceringsloggar: `/var/lib/egg-deploy/logs/`. Apache-loggar: `/var/log/apache2/egg-access.log` och `egg-error.log`.
 
 ## Cache och rensning
 
-Startsidan och `/version.json` får `Cache-Control: no-store`. Varje bygge använder `/releases/RELEASE-ID/` för sina resursadresser; de filerna ändras aldrig och kan cachelagras. Därför kan äldre öppna sessioner fortfarande hämta sin egen versions bilder, ljud och JavaScript.
+Startsidan och `/version.json` får `Cache-Control: no-store`. Varje version använder `/releases/RELEASE-ID/` för sina resurser, som inte ändras efter publicering. Äldre öppna spelsessioner kan därför fortsätta hämta sina egna resurser efter en uppdatering.
 
-Gamla versioner behålls minst **sju hela dygn efter att de senast slutade vara aktiva**. Aktiv version och `previous` tas aldrig bort av rensningskommandot:
+Rensning behåller versioner minst sju hela dygn efter att de senast slutade vara aktiva. Aktiv version och målet i `previous` tas aldrig bort:
 
 ```bash
 bash scripts/deploy.sh prune
 ```
 
-Ingen automatisk rensning körs. Kör den manuellt när diskbehovet motiverar det. Rensning tar bara versioner med registrerad pensionering; övergivna, aldrig aktiverade byggen kan behöva granskas separat. Sessioner som lämnas öppna längre än sju dygn kan behöva laddas om efter rensning. Ingen resursgaranti ges för sådana sessioner.
+Upprepad rensning är säker. Ingen automatisk rensning installeras. Bara versioner med registrerad pensionering tas bort; aldrig aktiverade byggen kan behöva granskas separat. Sessioner som lämnas öppna längre än sju dygn kan behöva laddas om efter rensning.
 
-## Kvar att verifiera på den riktiga servern
+## Kontroller
 
-- Installera och visa startscenen över HTTPS, kontrollera övriga Apache-webbplatser.
-- Gör en synlig ändring lokalt, commit, push och publicera den; jämför commit.
-- Prova två samtidiga skriptkörningar; den andra ska stoppas.
-- Prova ett avsiktligt byggfel på en separat testgren, med `EGG_BRANCH` satt till den grenen. Den aktiva startsidan ska behållas. Publicera ingen trasig commit på `main`.
-- Prova återställning och därefter återgång till den avsedda versionen.
-- Behåll en äldre flik öppen under uppdateringen och kontrollera att dess gamla resursadresser fortsätter fungera.
-- Prova förnyelse av just Egg Catchers certifikat.
-
-`SIGINT` och `SIGTERM` hanteras så att ett avbrutet byte kan återställas. Strömavbrott eller `SIGKILL` kan inte hanteras av en Bash-trap; efter ett sådant avbrott ska `status`, startsidan och loggen kontrolleras manuellt. Det atomiska bytet innebär att pekaren är antingen den gamla eller nya versionen.
+[Kontrollprotokollet](VERIFIERING-01.md) skiljer lokala och isolerade tester från det som återstår på den riktiga servern. Integrationsprovet i `tests/deploy/integration.py` använder tillfälliga kataloger, lokal Git och en lokal HTTP-server. GitHub Actions kör det som root i Debian 13 med projektets Node-version. Det installerar ingen webbplats på din server.
 
 ## Referenser
 
+- [Vites Node-krav](https://vite.dev/guide/)
 - [Apache: namnbaserade VirtualHost](https://httpd.apache.org/docs/2.4/vhosts/name-based.html)
 - [Apache: Alias och Directory-behörigheter](https://httpd.apache.org/docs/2.4/mod/mod_alias.html)
 - [Certbot: användarguide](https://eff-certbot.readthedocs.io/en/stable/using.html)
-- [Vite: publiceringsbas](https://vite.dev/config/shared-options.html#base)
+- [Debian: runuser](https://manpages.debian.org/trixie/util-linux/runuser.1.en.html)

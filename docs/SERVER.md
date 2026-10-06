@@ -67,9 +67,11 @@ bash scripts/deploy.sh status
 
 ## 3. Lägg till Egg Catchers Apache-konfiguration
 
-Kontrollera först `apache2ctl -S` så att domänen inte redan används i en annan konfigurationsfil. Återanvänd i så fall den filen och granska dess innehåll. Mallen har endast `ServerName egg.landychev.se` och påverkar inte andra projekt genom wildcardnamn.
+Kontrollera först `apache2ctl -S` så att domänen inte redan används i en annan konfigurationsfil, varken på port 80 eller 443. Återanvänd i så fall den filen och granska dess innehåll. Mallen har endast `ServerName egg.landychev.se` och påverkar inte andra projekt genom wildcardnamn.
 
-När det är den här konfigurationsfilen som ska användas kan följande block köras upprepade gånger. Det skapar en första säkerhetskopia och installerar mallen bara om filen saknas. En befintlig fil, även efter Certbots ändringar, behålls:
+Mallen innehåller både HTTP- och HTTPS-vhost. HTTPS-blocket och omdirigeringen från HTTP ligger i `<IfFile>` och aktiveras automatiskt först när Let's Encrypt-certifikatet finns. Filen går därför att aktivera redan före Certbot; då svarar bara port 80. Utan egen HTTPS-vhost svarar annars serverns standardcertifikat (`donkey.landychev.se`) för domänen, och publiceringsskriptets webbkontroll avbryter med `ERR_TLS_CERT_ALTNAME_INVALID`.
+
+Blocket kan köras upprepade gånger. Det skapar en första säkerhetskopia och installerar mallen från repot:
 
 ```bash
 bash <<'APACHE'
@@ -77,10 +79,8 @@ set -euo pipefail
 if [ ! -e /root/apache-before-egg.tar.gz ]; then
     tar -czf /root/apache-before-egg.tar.gz /etc/apache2
 fi
-if [ ! -e /etc/apache2/sites-available/egg.landychev.se.conf ] && [ ! -L /etc/apache2/sites-available/egg.landychev.se.conf ]; then
-    install -m 644 /home/landy/github-proj/egg/deploy/apache/egg.landychev.se.conf /etc/apache2/sites-available/egg.landychev.se.conf
-fi
-a2enmod headers
+install -m 644 /home/landy/github-proj/egg/deploy/apache/egg.landychev.se.conf /etc/apache2/sites-available/egg.landychev.se.conf
+a2enmod headers ssl
 a2ensite egg.landychev.se.conf
 apache2ctl configtest
 systemctl reload apache2
@@ -90,25 +90,28 @@ APACHE
 Omladdning sker bara om konfigurationstestet lyckas. Kontrollera sedan:
 
 ```bash
-apache2ctl -S
+apache2ctl -S | grep egg
 curl -I http://egg.landychev.se/
 ```
 
-Öppna adressen och kontrollera att Egg Catchers förberedelsesida visas. Kontrollera även de befintliga webbplatserna. Port 80 och 443 måste nå Apache utifrån, och DNS A/AAAA ska peka rätt. En AAAA-post ska bara finnas om IPv6 fungerar.
+Öppna adressen och kontrollera att Egg Catchers förberedelsesida visas över HTTP. Kontrollera även de befintliga webbplatserna. Port 80 och 443 måste nå Apache utifrån, och DNS A/AAAA ska peka rätt. En AAAA-post ska bara finnas om IPv6 fungerar.
 
 ## 4. HTTPS med befintlig Certbot
 
-Kontrollera certifikatlistan innan ett certifikat skapas. Om ett certifikat redan omfattar domänen används dess befintliga namn och upplägg. För ett nytt separat certifikat med namnet `egg.landychev.se`:
+Kontrollera certifikatlistan innan ett certifikat skapas. Om ett certifikat redan omfattar domänen används dess befintliga namn; justera i så fall `Define EGG_CERT`/`EGG_KEY` överst i konfigurationsfilen. För ett nytt separat certifikat hämtas bara certifikatet (`certonly`); Apache-konfigurationen kommer från mallen och ändras inte av Certbot:
 
 ```bash
-certbot --apache --cert-name egg.landychev.se -d egg.landychev.se --redirect --keep-until-expiring
+certbot certonly --apache --cert-name egg.landychev.se -d egg.landychev.se \
+    --keep-until-expiring --deploy-hook "systemctl reload apache2"
 apache2ctl configtest
-apache2ctl -S
+systemctl reload apache2
+apache2ctl -S | grep egg
 certbot certificates
 curl -I https://egg.landychev.se/
+curl -I http://egg.landychev.se/
 ```
 
-Samma certifikatnamn och `--keep-until-expiring` återanvänder ett befintligt giltigt certifikat när kommandot upprepas. Certbot kan skapa `egg.landychev.se-le-ssl.conf`. Kontrollera att HTTPS-konfigurationen innehåller samma `DocumentRoot`, `Alias`, Directory-behörigheter och cache-regler som mallen. Skriv inte över Certbots befintliga konfiguration vid senare publiceringar.
+Efter omladdningen ska `apache2ctl -S` visa `*:443 egg.landychev.se` från `egg.landychev.se.conf`, HTTPS ska svara 200 med rätt certifikat och HTTP ska svara 301 till HTTPS. `--deploy-hook` gör att Apache laddas om vid automatisk förnyelse. ACME-sökvägen `/.well-known/acme-challenge/` undantas från omdirigeringen, så förnyelsen fungerar även över HTTP.
 
 Kontrollera förnyelsen för det certifikatnamn som listan faktiskt visar:
 

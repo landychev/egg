@@ -1,7 +1,7 @@
 # Egg Catcher – detaljerade uppgifter för punkt 1
 
 Datum: 2026-10-03  
-Status: Delvis implementerad 2026-10-06 – 01.1–01.9 är verifierade lokalt. Se [kontrollprotokollet](VERIFIERING-01.md) för återstående serverkontroller.  
+Status: Delvis implementerad 2026-10-06 – 01.1–01.9 är verifierade lokalt och 01.10 är verifierad mot GitHub. Se [kontrollprotokollet](VERIFIERING-01.md) för återstående serverkontroller.  
 Huvuduppgift: [01. Sätta upp projektet i UPPGIFTER.md](UPPGIFTER.md#01-sätta-upp-projektet)  
 Teknisk grund: [TEKNIKVAL.md](TEKNIKVAL.md).
 
@@ -198,7 +198,7 @@ Här räcker en dokumenterad praktisk kontroll av projektgrunden. Automatiserade
 
 ## 01.10 – Koppla projektet till GitHub
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Ha en gemensam källa för de versioner som ska publiceras.
 

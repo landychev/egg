@@ -22,7 +22,7 @@ Apache-testet använde separata testversioner och tillfälliga kataloger. Det be
 
 - [x] Befintligt repo återanvänt: `git@github.com:landychev/egg.git`.
 - [x] Gren `main` och fjärråtkomst verifierade.
-- [ ] **01.10:** den kontrollerade implementationen har pushats och fjärrgrenen jämförts med lokal commit.
+- [x] **01.10:** implementationen pushades som `153ef8898d2a770e73b6917709da313f347c5479`. `git ls-remote` bekräftade samma commit på GitHubs `main`. Efterföljande ändringar i detta protokoll är dokumentation av kontrollen.
 
 ## Kvar på Debian
 

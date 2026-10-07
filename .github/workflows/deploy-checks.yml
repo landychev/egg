@@ -12,6 +12,7 @@ on:
       - 'src/**'
       - 'tsconfig.json'
       - 'vite.config.*'
+      - 'vitest.config.*'
   workflow_dispatch:
 permissions:
   contents: read
@@ -32,9 +33,10 @@ jobs:
         with:
           node-version-file: .nvmrc
           package-manager-cache: false
-      - name: Build the application with the server Node version
+      - name: Test and build the application with the server Node version
         run: |
           npm ci --include=dev --no-fund --no-audit
+          npm test
           npm run build
       - name: Test root deployment and repeated invocations in temporary directories
         run: python3 tests/deploy/integration.py

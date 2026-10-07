@@ -1,12 +1,13 @@
 # Egg Catcher
 
-Ett matematikspel i TypeScript och Phaser. Uppgift 1 ger en responsiv teknisk startscen; spelregler, varg, ägg och spelknappar kommer senare.
+Ett matematikspel i TypeScript och Phaser. Uppgift 1 ger en responsiv teknisk startscen. Uppgift 2 ger en testad regelkärna för jämnt/udda 0–20, träning/utmaning och en bedömning per ägg. Den synliga sidan visar fortfarande startscenen; spelplan och spelknappar byggs i uppgift 3–4.
 
 ## Verktyg
 
 - Node.js **22.23.3 LTS**, samma version lokalt och på Debian (se `.nvmrc` och `.node-version`).
 - npm, som följer med Node.js. Använd `npm ci` och versionshantera `package-lock.json`.
 - Phaser **4.2.1**, TypeScript **7.0.2**, Vite **8.3.3**.
+- Vitest **5.0.3** för regeltester utan webbläsare.
 
 Node-versionen är anpassad till serverns befintliga Node.js 22.23.3 och npm 10.9.9. Node 26.3.1 finns globalt på utvecklingsdatorn; en separat Node 22.23.3 används för projektets kontroller. Installera Node-versionen via din vanliga versionshanterare eller [Node.js officiella distribution](https://nodejs.org/dist/v22.23.3/). Om nvm redan finns:
 
@@ -29,11 +30,14 @@ npm run dev
 
 ```bash
 npm run typecheck
+npm test
 npm run build
 npm run preview
 ```
 
 `build` kör alltid typkontroll först och lägger sedan statiska filer i `dist/`. `preview` visar det färdiga bygget, normalt på http://127.0.0.1:4173. Avsluta även den med Ctrl+C. Apache levererar den publika webbplatsen; Node behöver inte köras som en publik tjänst.
+
+`npm test` kör samtliga regeltester en gång och avslutar med felstatus om något misslyckas. `npm run test:watch` kör om berörda tester när filer ändras. Testerna ligger i `src/logic/*.test.ts` och ingår även i typkontrollen. Kör både tester och bygge före publicering. Debian-skriptet kör testkommandot före bygget; GitHub-kontrollen gör detsamma.
 
 ## Projektets platser
 
@@ -42,11 +46,14 @@ npm run preview
 | `src/main.ts` | Start och städning av spelet |
 | `src/game/config.ts` | Arbetsytan 960 × 540 och proportionerlig skalning |
 | `src/scenes/StartScene.ts` | Första scenen |
-| `src/logic/` | Framtida spelregler, utan Phaser-beroende |
+| `src/game/session.ts` | Gemensam ägg-id-räknare för hela den laddade sidan |
+| `src/logic/` | Spelregler, inställningar och tester utan Phaser-beroende |
 | `public/assets/images/`, `public/assets/audio/` | Framtida bilder och ljud |
 | `scripts/` | Publicering, återställning och verifiering |
 | `deploy/apache/` | Egen VirtualHost för egg.landychev.se |
 | `docs/` | Planer, kontrollresultat och serverguide |
+
+Se [regelkärnans guide](src/logic/README.md) för funktionerna och deras användning från kommande scener. Justerbara spelvärden finns i `src/logic/settings.ts`. Färdtid, paus mellan ägg och nivågräns är dokumenterade platshållare inför uppgift 4 och 6.
 
 När resurser från `public/` laddas i Phaser ska adressen byggas med `import.meta.env.BASE_URL`, till exempel `` `${import.meta.env.BASE_URL}assets/images/example.png` ``. Då behåller en öppen spelsession sina versionsspecifika resurser efter en uppdatering.
 
@@ -66,6 +73,8 @@ Kontrollera och provspela ändringar före commit och push. Servern hämtar en e
 - [Teknikval](docs/TEKNIKVAL.md)
 - [Uppgiftsplan](docs/UPPGIFTER.md)
 - [Detaljerade uppgifter 1](docs/detaljerade-uppgifter-1.md)
+- [Detaljerade uppgifter 2](docs/detaljerade-uppgifter-2.md)
+- [Verifiering av uppgift 2](docs/VERIFIERING-02.md)
 
 Referensdokumenten kopierades från projektmappen. Originalen där har inte ändrats. Aktuell implementationsstatus förs i kontrollprotokollet.
 

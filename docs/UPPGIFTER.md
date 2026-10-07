@@ -11,7 +11,7 @@ Planen utgår från [TEKNIKVAL.md](TEKNIKVAL.md) och prototypförslaget i [SPELD
 
 ## Tio huvuduppgifter
 
-Ordningen nedan är en föreslagen genomförandeordning. Varje uppgift har ett stabilt nummer som vi senare kan använda för deluppgifter, exempelvis `04.1`. Kryssa i en huvuduppgift först när dess färdigkriterium har kontrollerats. Alla uppgifter är tills vidare öppna.
+Ordningen nedan är en föreslagen genomförandeordning. Varje uppgift har ett stabilt nummer som vi senare kan använda för deluppgifter, exempelvis `04.1`. Kryssa i en huvuduppgift först när dess färdigkriterium har kontrollerats. Uppgift 02 är verifierad lokalt 2026-10-07. Övriga uppgifter behåller sin tidigare status.
 
 ### 01. Sätta upp projektet
 
@@ -27,7 +27,7 @@ Ordningen nedan är en föreslagen genomförandeordning. Varje uppgift har ett s
 
 ### 02. Bygga spelreglerna och beskriva spelets tillstånd
 
-- [ ] Klar
+- [x] Klar – verifierad lokalt 2026-10-07, se [kontrollprotokollet](VERIFIERING-02.md).
 
 **Detaljplan:** [Punkt 2 – spelregler och spelets tillstånd](detaljerade-uppgifter-2.md). Dokumentet innehåller 14 deluppgifter med förklaringar, enkel pseudokod och färdigkriterier.
 

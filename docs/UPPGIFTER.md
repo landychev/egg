@@ -1,7 +1,7 @@
 # Egg Catcher – uppgifter för en spelbar prototyp
 
 Datum: 2026-10-03  
-Status: Arbetsplan med tio huvuduppgifter. Punkt 1 och 2 är nedbrutna i separata detaljdokument; övriga punkter återstår.
+Status: Arbetsplan med tio huvuduppgifter. Punkt 1–3 är nedbrutna i separata detaljdokument; övriga punkter återstår.
 
 ## Mål och teknisk riktning
 
@@ -39,7 +39,9 @@ Ordningen nedan är en föreslagen genomförandeordning. Varje uppgift har ett s
 
 ### 03. Skapa spelplanen och den första grafiken
 
-- [ ] Klar
+- [ ] Klar – implementerad lokalt 2026-10-13; visuell slutkontroll och prov på riktiga enheter återstår, se [kontrollprotokollet](VERIFIERING-03.md).
+
+**Detaljplan:** [Punkt 3 – spelplan och första grafik](detaljerade-uppgifter-3.md). Dokumentet innehåller 14 deluppgifter med förklaringar, pseudokod där det hjälper och färdigkriterier.
 
 **Mål:** Visa en begriplig spelvärld på dator och surfplatta.
 
@@ -119,7 +121,7 @@ Ordningen nedan är en föreslagen genomförandeordning. Varje uppgift har ett s
 
 ## Hur vi bryter ner planen senare
 
-När en huvuduppgift ska påbörjas beskriver vi mindre deluppgifter i ett separat detaljdokument och länkar dit från huvuduppgiften. Punkt 1 finns i [detaljerade-uppgifter-1.md](detaljerade-uppgifter-1.md) och punkt 2 i [detaljerade-uppgifter-2.md](detaljerade-uppgifter-2.md). Varje deluppgift ska beskriva en konkret förändring och hur vi kontrollerar att den fungerar. Vi behåller huvuduppgiftens mål och färdigkriterium som riktning.
+När en huvuduppgift ska påbörjas beskriver vi mindre deluppgifter i ett separat detaljdokument och länkar dit från huvuduppgiften. Detaljplaner finns för [punkt 1](detaljerade-uppgifter-1.md), [punkt 2](detaljerade-uppgifter-2.md) och [punkt 3](detaljerade-uppgifter-3.md). Varje deluppgift ska beskriva en konkret förändring och hur vi kontrollerar att den fungerar. Vi behåller huvuduppgiftens mål och färdigkriterium som riktning.
 
 Uppgift 01 etablerar även publiceringsvägen med en enkel startscen. Uppgift 01–04 ger en första spelbar grundloop. Uppgift 05–09 gör prototypens båda spellägen och användarflöde kompletta. Uppgift 10 samlar slutkontroll, speltest och publicering; löpande kontroller görs redan under respektive uppgift.
 

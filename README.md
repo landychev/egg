@@ -1,6 +1,6 @@
 # Egg Catcher
 
-Ett matematikspel i TypeScript och Phaser. Uppgift 1 ger en responsiv teknisk startscen. Uppgift 2 ger en testad regelkärna för jämnt/udda 0–20, träning/utmaning och en bedömning per ägg. Den synliga sidan visar fortfarande startscenen; spelplan och spelknappar byggs i uppgift 3–4.
+Ett matematikspel i TypeScript och Phaser. Uppgift 1 ger en responsiv teknisk startscen. Uppgift 2 ger en testad regelkärna för jämnt/udda 0–20, träning/utmaning och en bedömning per ägg. Den synliga sidan visar nu spelplanen med varg, fyra rännor, två kategorikorgar och ett stillastående talägg. Punkt 3 är implementerad men väntar på visuell slutkontroll. Knapparna är inaktiva; själva spelet kopplas in i punkt 4.
 
 ## Verktyg
 
@@ -37,7 +37,7 @@ npm run preview
 
 `build` kör alltid typkontroll först och lägger sedan statiska filer i `dist/`. `preview` visar det färdiga bygget, normalt på http://127.0.0.1:4173. Avsluta även den med Ctrl+C. Apache levererar den publika webbplatsen; Node behöver inte köras som en publik tjänst.
 
-`npm test` kör samtliga regeltester en gång och avslutar med felstatus om något misslyckas. `npm run test:watch` kör om berörda tester när filer ändras. Testerna ligger i `src/logic/*.test.ts` och ingår även i typkontrollen. Kör både tester och bygge före publicering. Debian-skriptet kör testkommandot före bygget; GitHub-kontrollen gör detsamma.
+`npm test` kör samtliga regeltester en gång och avslutar med felstatus om något misslyckas. `npm run test:watch` kör om berörda tester när filer ändras. Testerna ligger i `src/logic/*.test.ts` och `src/game/*.test.ts` och ingår även i typkontrollen. Kör både tester och bygge före publicering. Debian-skriptet kör testkommandot före bygget; GitHub-kontrollen gör detsamma.
 
 ## Projektets platser
 
@@ -45,10 +45,11 @@ npm run preview
 | --- | --- |
 | `src/main.ts` | Start och städning av spelet |
 | `src/game/config.ts` | Arbetsytan 960 × 540 och proportionerlig skalning |
-| `src/scenes/StartScene.ts` | Första scenen |
+| `src/scenes/GameScene.ts` | Spelplanens förhandsvisning |
+| `src/game/layout.ts`, `visualStyle.ts` | Banor, placeringar och gemensamma grafikstilar |
 | `src/game/session.ts` | Gemensam ägg-id-räknare för hela den laddade sidan |
 | `src/logic/` | Spelregler, inställningar och tester utan Phaser-beroende |
-| `public/assets/images/`, `public/assets/audio/` | Framtida bilder och ljud |
+| `public/assets/images/`, `public/assets/audio/` | Spelbilder och plats för kommande ljud |
 | `scripts/` | Publicering, återställning och verifiering |
 | `deploy/apache/` | Egen VirtualHost för egg.landychev.se |
 | `docs/` | Planer, kontrollresultat och serverguide |
@@ -74,8 +75,17 @@ Kontrollera och provspela ändringar före commit och push. Servern hämtar en e
 - [Uppgiftsplan](docs/UPPGIFTER.md)
 - [Detaljerade uppgifter 1](docs/detaljerade-uppgifter-1.md)
 - [Detaljerade uppgifter 2](docs/detaljerade-uppgifter-2.md)
+- [Detaljerade uppgifter 3](docs/detaljerade-uppgifter-3.md)
 - [Verifiering av uppgift 2](docs/VERIFIERING-02.md)
+- [Implementation och kvarvarande verifiering av uppgift 3](docs/VERIFIERING-03.md)
+- [Grafik och bildbeskrivningar](docs/artwork-v1/ARTWORK.md)
 
 Referensdokumenten kopierades från projektmappen. Originalen där har inte ändrats. Aktuell implementationsstatus förs i kontrollprotokollet.
 
 Verktygsreferenser: [Node.js LTS](https://nodejs.org/en/about/previous-releases), [Vites miljökrav](https://vite.dev/guide/), [Phaser-installation](https://docs.phaser.io/phaser/getting-started/installation).
+
+## Granska spelplanen lokalt
+
+Efter `npm run dev` kan du lägga till `?inspect=1` i sidans adress. Då visas lokala kontroller för tal, ränna, banposition, knappform, återkoppling och scenomstart. De finns inte i produktionsbygget. Normalvyn visar ett stillastående exempel och skapar inga spelsvar.
+
+Spelplanen är avsedd för dator och surfplatta, inklusive stående 768 × 1024. För små fönster visar en uppmaning att förstora eller vrida skärmen. Faktisk läsbarhet, orienteringsbyte och livscykel återstår att kontrollera enligt protokollet för uppgift 3.

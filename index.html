@@ -3,29 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#172d29" />
-    <meta name="description" content="Egg Catcher – ett matematikspel under utveckling." />
+    <meta name="theme-color" content="#173c2d" />
+    <meta name="description" content="Egg Catcher – ett matematikspel om jämna och udda tal. Förhandsvisning av spelplanen." />
     <link rel="icon" href="data:," />
-    <title>Egg Catcher</title>
+    <title>Egg Catcher – spelplan</title>
   </head>
   <body>
     <main class="shell">
       <header class="masthead">
-        <span class="wordmark">EC<span class="wordmark-dot">.</span></span>
-        <span class="stage-label">ETT MATEMATIKÄVENTYR TAR FORM</span>
-        <span class="prototype">Prototyp 0.1</span>
+        <h1>Egg Catcher<span class="wordmark-dot">.</span></h1>
+        <span class="prototype">Förhandsvisning · spelplan</span>
       </header>
-      <section class="intro" aria-labelledby="page-title">
-        <p class="eyebrow">SMÅ TAL. STORA UPPTÄCKTER.</p>
-        <h1 id="page-title">Egg Catcher</h1>
-        <p class="description">Här börjar vårt matematikäventyr.</p>
-      </section>
-      <div id="game" role="img" aria-label="Startscen för Egg Catcher: en ljus cirkel på grön bakgrund. Spelet är under utveckling."></div>
+      <div class="stage">
+        <div id="game" role="img" aria-label="Spelplan för Egg Catcher laddas: en varg, fyra rännor, två kategorikorgar och ett talägg."></div>
+      </div>
+      <div class="small-screen" role="note">
+        <strong>Lite mer plats för äggen!</strong>
+        Förstora fönstret eller vrid din surfplatta så att tal och knappar får plats.
+        På en liten mobilskärm behöver du öppna spelet på dator eller surfplatta.
+      </div>
       <footer class="status-bar">
-        <span><span class="status-dot" aria-hidden="true"></span>Projektgrunden är på plats</span>
+        <span><span class="status-dot" aria-hidden="true"></span><span id="preview-status">Spelplanen tar form</span></span>
         <span id="build-version">Lokal utveckling</span>
       </footer>
-      <p class="footnote">Det här är vår första startscen. Spelregler och knappar kommer i nästa steg.</p>
+      <p class="footnote">En förhandsvisning av grafiken. Ägget står stilla och knapparna är ännu inte aktiva.</p>
     </main>
     <noscript>Du behöver aktivera JavaScript för att visa Egg Catcher.</noscript>
     <script type="module" src="/src/main.ts"></script>

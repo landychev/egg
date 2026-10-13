@@ -1,6 +1,6 @@
 :root {
   font-family: "Avenir Next", "Segoe UI", sans-serif;
-  color: #172d29;
+  color: #173c2d;
   background: #f4f1e8;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -8,27 +8,31 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 280px; }
-.shell { width: min(100% - 64px, 1040px); margin: 0 auto; }
-.masthead { display: flex; align-items: center; gap: 20px; padding: 26px 0; border-bottom: 1px solid #d8ddd1; }
-.wordmark { font-size: 29px; font-weight: 800; letter-spacing: -2px; }
+.shell { width: min(1120px, calc(100% - 32px), calc((100dvh - 132px) * 16 / 9)); margin: 0 auto; }
+.masthead { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+h1 { margin: 0; font-size: 25px; font-weight: 800; letter-spacing: -1px; }
 .wordmark-dot { color: #a3522c; }
-.stage-label { font-size: 10px; letter-spacing: 1.8px; font-weight: 650; }
-.prototype { margin-left: auto; border: 1px solid #c6cfc1; border-radius: 20px; padding: 6px 13px; font-size: 11px; white-space: nowrap; }
-.intro { text-align: center; padding: 40px 0 27px; }
-.eyebrow { margin: 0 0 10px; font-size: 10px; font-weight: 700; letter-spacing: 2px; color: #56685b; }
-h1 { margin: 0; font-size: clamp(36px, 6vw, 58px); font-weight: 700; letter-spacing: -2px; line-height: 1.15; }
-.description { margin: 11px 0 0; color: #58665c; font-size: 15px; }
-#game { width: 100%; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 18px; background: #233c32; }
+.prototype { border: 1px solid #bdcbb9; border-radius: 20px; padding: 6px 12px; font-size: 12px; white-space: nowrap; }
+.stage { width: 100%; aspect-ratio: 16 / 9; position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 26px #263c2b1a; }
+#game { position: absolute; inset: 0; background: #aec395; }
 #game canvas { display: block; }
-.status-bar { display: flex; gap: 12px; justify-content: space-between; align-items: center; padding: 19px 0; border-bottom: 1px solid #d8ddd1; font-size: 12px; color: #41594a; }
-.status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #5d7d3f; margin-right: 8px; }
-#build-version { color: #647065; font-size: 11px; }
-.footnote { text-align: center; color: #647065; font-size: 12px; line-height: 1.6; margin: 18px 0 26px; }
-@media (max-width: 600px) {
-  .shell { width: calc(100% - 28px); }
-  .masthead { padding: 17px 0; gap: 10px; }
-  .stage-label { display: none; }
-  .intro { padding: 28px 0 23px; }
-  .status-bar { align-items: flex-start; flex-direction: column; font-size: 11px; gap: 7px; padding: 14px 0; }
-  #game { border-radius: 12px; }
+.status-bar { display: flex; gap: 12px; justify-content: space-between; align-items: center; min-height: 34px; font-size: 12px; color: #41594a; }
+.status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #65814a; margin-right: 7px; }
+#build-version { color: #58675a; font-size: 11px; }
+.footnote { margin: 0; text-align: center; color: #526253; font-size: 12px; line-height: 20px; }
+.small-screen { display: none; padding: 32px 24px; border: 1px solid #c7d1bd; border-radius: 18px; background: #fff9ea; text-align: center; line-height: 1.6; }
+.small-screen strong { display: block; font-size: 23px; }
+#preview-controls { max-width: 1120px; margin: 20px auto; padding: 0 16px; }
+#preview-controls fieldset { display: flex; flex-wrap: wrap; gap: 16px; border: 1px solid #a5b8a0; border-radius: 10px; }
+#preview-controls label { display: flex; gap: 8px; align-items: center; }
+#preview-controls select, #preview-controls button { padding: 6px; font: inherit; }
+/* Never shrink the board below 75%: number >=36px, labels >=21px, buttons >=57px high. */
+@media (max-width: 751px), (max-height: 536px) {
+  .shell { width: calc(100% - 24px); max-width: 1120px; }
+  .stage { display: none; }
+  .small-screen { display: block; }
+  .status-bar { flex-wrap: wrap; padding: 12px 0; }
+  .footnote { padding-bottom: 12px; }
+  .prototype { font-size: 10px; padding: 5px 8px; }
+  h1 { font-size: 23px; }
 }

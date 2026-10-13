@@ -1,0 +1,70 @@
+{
+  "wolf-neutral-v1.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "content_bounds": [
+      69,
+      23,
+      1176,
+      1220
+    ],
+    "transparent_pixels": 1015667
+  },
+  "basket-v1.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "content_bounds": [
+      42,
+      65,
+      1212,
+      1238
+    ],
+    "transparent_pixels": 809291
+  },
+  "egg-v1.png": {
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "content_bounds": [
+      0,
+      19,
+      1244,
+      1223
+    ],
+    "transparent_pixels": 750103
+  },
+  "background-farm-v1.png": {
+    "size": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  },
+  "concept-board-v1.png": {
+    "size": [
+      1672,
+      941
+    ],
+    "mode": "RGB"
+  }
+}

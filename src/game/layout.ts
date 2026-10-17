@@ -32,7 +32,8 @@ export function positionOnLane(id: number, progress: number): Point {
 export const LAYOUT = Object.freeze({
   rule: { x: 480, y: 38, width: 640, height: 52 },
   wolf: { x: 480, y: 278, size: 300 },
-  baskets: { left: { x: 310, y: 348 }, right: { x: 650, y: 348 }, size: 240, labelOffsetY: 25 },
+  // Lower the rim to the lower chutes; keep the basket bases clear of the buttons.
+  baskets: { left: { x: 310, y: 372 }, right: { x: 650, y: 372 }, size: 220, labelOffsetY: 23 },
   egg: { size: 100, railOffsetY: 43 },
   feedback: { x: 480, y: 435, width: 800, height: 30 },
   buttons: { leftX: 278, rightX: 682, y: 490, width: 352, height: 76 },

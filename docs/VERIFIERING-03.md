@@ -2,6 +2,14 @@
 
 Datum: 2026-10-13. Implementation finns lokalt. Visuell slutkontroll återstår; huvuduppgift 3 är ännu inte avprickad.
 
+## Justering av korgarna 2026-10-17
+
+Korgarna täckte ändarna på de nedre rännorna i den publicerade versionen. Båda har flyttats ned 24 logiska pixlar (y 348 → 372) och bildytan minskats från 240 till 220. Etikettens offset följer med från 25 till 23; textstorleken är oförändrad. Detta placerar rännornas slut vid öppningarna och lämnar plats ovanför knapparna.
+
+Kontrollerat i appens webbläsare: datorvy 1280 × 720 och simulerad stående surfplatta 768 × 1024. I surfplatteformat var spelplanen 736 × 414, exakt en canvas fanns och ingen horisontell överrinning uppstod. Talet 20 vid den nedre vänstra rännans slut samt provåterkoppling granskades visuellt. Inga webbläsarfel eller varningar registrerades. 134 tester, typkontroll och produktionsbygge passerade. Den tidigare kända byggvarningen om Phasers paketstorlek kvarstår.
+
+Skärmbilder: [dator](basket-layout-2026-10-17/desktop.jpg) och [stående surfplatta](basket-layout-2026-10-17/tablet-portrait.jpg). Detta är en avgränsad kontroll av korgjusteringen; fullständig verifiering av uppgift 3 och prov på riktiga surfplattor återstår.
+
 ## Implementerat
 
 - Ny `GameScene` ersätter den tekniska startscenen i spelkonfigurationen.
@@ -44,7 +52,7 @@ Mål: tal minst 32 px, kategoriord/regel minst 20 px, knappar minst 140 × 56 px
 
 Bakgrund → rännor → varg → korgar/etiketter → regel/återkoppling/knappar → ägg/tal.
 
-Vargens bildyta är 300 × 300 med mittpunkt (480, 278); synlig fotpunkt ungefär (480, 418). Korgarnas bildytor är 240 × 240 kring (310, 348) och (650, 348), med etiketter 25 logiska pixlar nedanför respektive mittpunkt. Dessa är separata behållare och framtida fästpunkter; själva vargens armar är inte separata sprites ännu. Äggets bildyta är 100 × 100 med upprätt tal. Knapparna är 352 × 76 med 52 pixlars mellanrum och framtida träffyta över hela knappen. De är inte interaktiva i förhandsvisningen.
+Vargens bildyta är 300 × 300 med mittpunkt (480, 278); synlig fotpunkt ungefär (480, 418). Efter justeringen 2026-10-17 är korgarnas bildytor 220 × 220 kring (310, 372) och (650, 372), med etiketter 23 logiska pixlar nedanför respektive mittpunkt. Dessa är separata behållare och framtida fästpunkter; själva vargens armar är inte separata sprites ännu. Äggets bildyta är 100 × 100 med upprätt tal. Knapparna är 352 × 76 med 52 pixlars mellanrum och framtida träffyta över hela knappen. De är inte interaktiva i förhandsvisningen.
 
 Återkoppling har en reserverad rad kring (480, 435), över knapparna. Bildbeskrivningar och originalmått finns i `docs/artwork-v1/ARTWORK.md`.
 

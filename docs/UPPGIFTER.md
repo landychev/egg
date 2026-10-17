@@ -1,7 +1,7 @@
 # Egg Catcher – uppgifter för en spelbar prototyp
 
 Datum: 2026-10-03  
-Status: Arbetsplan med tio huvuduppgifter. Punkt 1–3 är nedbrutna i separata detaljdokument; övriga punkter återstår.
+Status: Arbetsplan med tio huvuduppgifter. Punkt 1–4 är nedbrutna i separata detaljdokument; övriga punkter återstår.
 
 ## Mål och teknisk riktning
 
@@ -11,11 +11,11 @@ Planen utgår från [TEKNIKVAL.md](TEKNIKVAL.md) och prototypförslaget i [SPELD
 
 ## Tio huvuduppgifter
 
-Ordningen nedan är en föreslagen genomförandeordning. Varje uppgift har ett stabilt nummer som vi senare kan använda för deluppgifter, exempelvis `04.1`. Kryssa i en huvuduppgift först när dess färdigkriterium har kontrollerats. Uppgift 02 är verifierad lokalt 2026-10-07. Övriga uppgifter behåller sin tidigare status.
+Ordningen nedan är en föreslagen genomförandeordning. Varje uppgift har ett stabilt nummer som vi senare kan använda för deluppgifter, exempelvis `04.1`. Kryssa i en huvuduppgift först när dess färdigkriterium har kontrollerats. Uppgift 02 är verifierad lokalt 2026-10-07 och uppgift 03 mot den publicerade versionen 2026-10-17. Övriga uppgifter behåller sin tidigare status.
 
 ### 01. Sätta upp projektet
 
-- [ ] Klar
+- [ ] Klar – publiceringsvägen lokal → GitHub → `https://egg.landychev.se/` är bekräftad 2026-10-17; återställning och samtidighetslås på den riktiga servern är ännu inte provade, se [kontrollprotokollet](VERIFIERING-01.md).
 
 **Detaljplan:** [Punkt 1 – projektgrund och uppdateringar via GitHub till Debian](detaljerade-uppgifter-1.md). Dokumentet innehåller 14 deluppgifter med förklaringar, enkel pseudokod och färdigkriterier.
 
@@ -39,7 +39,7 @@ Ordningen nedan är en föreslagen genomförandeordning. Varje uppgift har ett s
 
 ### 03. Skapa spelplanen och den första grafiken
 
-- [ ] Klar – implementerad lokalt 2026-10-13; visuell slutkontroll och prov på riktiga enheter återstår, se [kontrollprotokollet](VERIFIERING-03.md).
+- [x] Klar – implementerad 2026-10-13, publicerad och visuellt kontrollerad 2026-10-17, se [kontrollprotokollet](VERIFIERING-03.md). Prov på riktiga surfplattor görs i uppgift 10.
 
 **Detaljplan:** [Punkt 3 – spelplan och första grafik](detaljerade-uppgifter-3.md). Dokumentet innehåller 14 deluppgifter med förklaringar, pseudokod där det hjälper och färdigkriterier.
 
@@ -52,6 +52,8 @@ Ordningen nedan är en föreslagen genomförandeordning. Varje uppgift har ett s
 ### 04. Göra grundloopen spelbar
 
 - [ ] Klar
+
+**Detaljplan:** [Punkt 4 – rullande ägg, svar och fångst](detaljerade-uppgifter-4.md).
 
 **Mål:** Kunna se ett ägg, välja kategori och direkt förstå resultatet.
 
@@ -121,7 +123,7 @@ Ordningen nedan är en föreslagen genomförandeordning. Varje uppgift har ett s
 
 ## Hur vi bryter ner planen senare
 
-När en huvuduppgift ska påbörjas beskriver vi mindre deluppgifter i ett separat detaljdokument och länkar dit från huvuduppgiften. Detaljplaner finns för [punkt 1](detaljerade-uppgifter-1.md), [punkt 2](detaljerade-uppgifter-2.md) och [punkt 3](detaljerade-uppgifter-3.md). Varje deluppgift ska beskriva en konkret förändring och hur vi kontrollerar att den fungerar. Vi behåller huvuduppgiftens mål och färdigkriterium som riktning.
+När en huvuduppgift ska påbörjas beskriver vi mindre deluppgifter i ett separat detaljdokument och länkar dit från huvuduppgiften. Detaljplaner finns för [punkt 1](detaljerade-uppgifter-1.md), [punkt 2](detaljerade-uppgifter-2.md), [punkt 3](detaljerade-uppgifter-3.md) och [punkt 4](detaljerade-uppgifter-4.md). Varje deluppgift ska beskriva en konkret förändring och hur vi kontrollerar att den fungerar. Vi behåller huvuduppgiftens mål och färdigkriterium som riktning.
 
 Uppgift 01 etablerar även publiceringsvägen med en enkel startscen. Uppgift 01–04 ger en första spelbar grundloop. Uppgift 05–09 gör prototypens båda spellägen och användarflöde kompletta. Uppgift 10 samlar slutkontroll, speltest och publicering; löpande kontroller görs redan under respektive uppgift.
 

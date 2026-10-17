@@ -31,11 +31,12 @@ export class GameScene extends Phaser.Scene {
     this.buttons = [];
     this.add.image(480, 270, 'farm').setDisplaySize(BOARD.width, BOARD.height).setName('background');
     this.add.rectangle(480, 270, BOARD.width, BOARD.height, 0xfff8e6, 0.12);
-    this.drawLanes();
     const wolf = LAYOUT.wolf;
-    this.add.ellipse(wolf.x, 416, 134, 16, 0x354126, 0.15);
+    this.add.ellipse(wolf.x, wolf.baseY, 150, 16, 0x354126, 0.15);
     this.add.image(wolf.x, wolf.y, 'wolf').setDisplaySize(wolf.size, wolf.size).setName('wolf');
     for (const category of ['even', 'odd'] as const) this.drawBasket(choiceForCategory(category));
+    // Chute exits overlap only the back rim/opening, never the basket front or label.
+    this.drawLanes();
 
     const rule = LAYOUT.rule;
     const panel = this.add.graphics();
@@ -109,16 +110,54 @@ export class GameScene extends Phaser.Scene {
   }
 
   private drawLanes(): void {
+    const supports = this.add.graphics().setName('chute-supports');
+    for (const x of [24, BOARD.width - 24]) {
+      supports.fillStyle(STYLE.woodDark).fillRoundedRect(x - 13, 20, 26, 328, 5);
+      supports.fillStyle(STYLE.wood).fillRoundedRect(x - 9, 24, 18, 320, 3);
+      supports.lineStyle(2, STYLE.woodLight, 0.7).lineBetween(x - 5, 30, x - 5, 335);
+    }
+
     for (const lane of LANES) {
       const g = this.add.graphics().setName(`lane-${lane.id}`);
-      const a = { x: lane.start.x - Math.sign(lane.end.x - lane.start.x) * 34, y: lane.start.y + LAYOUT.egg.railOffsetY - 11 };
-      const b = { x: lane.end.x + Math.sign(lane.end.x - lane.start.x) * 12, y: lane.end.y + LAYOUT.egg.railOffsetY + 4 };
-      // One shared path defines the wooden slope and future egg motion.
-      g.lineStyle(28, STYLE.woodDark).lineBetween(a.x, a.y, b.x, b.y);
-      g.lineStyle(20, STYLE.wood).lineBetween(a.x, a.y - 2, b.x, b.y - 2);
-      g.lineStyle(5, STYLE.woodLight).lineBetween(a.x, a.y - 10, b.x, b.y - 10);
-      g.lineStyle(2, STYLE.woodDark, 0.6).lineBetween(a.x, a.y + 4, b.x, b.y + 4);
-      for (const p of [a, b]) g.fillStyle(STYLE.woodDark).fillCircle(p.x, p.y + 2, 3);
+      const direction = Math.sign(lane.end.x - lane.start.x);
+      const slope = (lane.end.y - lane.start.y) / (lane.end.x - lane.start.x);
+      // Extend the same egg path out to its support, but stop exactly at its exit.
+      const a = {
+        x: lane.start.x - direction * 42,
+        y: lane.start.y + LAYOUT.egg.railOffsetY - direction * 42 * slope,
+      };
+      const b = { x: lane.end.x, y: lane.end.y + LAYOUT.egg.railOffsetY };
+      const polygon = (points: Array<{ x: number; y: number }>, fill: number): void => {
+        g.fillStyle(fill).lineStyle(2, STYLE.woodDark);
+        const vertices = points.map(point => new Phaser.Math.Vector2(point.x, point.y));
+        g.fillPoints(vertices, true).strokePoints(vertices, true);
+      };
+      // Rear rim, broad open floor, and front plank are distinct faces of a trough.
+      polygon([
+        { x: a.x, y: a.y - 26 }, { x: b.x, y: b.y - 26 },
+        { x: b.x, y: b.y - 14 }, { x: a.x, y: a.y - 14 },
+      ], STYLE.wood);
+      polygon([
+        { x: a.x, y: a.y - 14 }, { x: b.x, y: b.y - 14 },
+        { x: b.x, y: b.y + 14 }, { x: a.x, y: a.y + 14 },
+      ], STYLE.woodLight);
+      for (const offset of [-5, 5]) {
+        g.lineStyle(2, STYLE.wood, 0.6).lineBetween(a.x + direction * 8, a.y + offset + direction * 8 * slope, b.x - direction * 8, b.y + offset - direction * 8 * slope);
+      }
+      polygon([
+        { x: a.x, y: a.y + 14 }, { x: b.x, y: b.y + 14 },
+        { x: b.x, y: b.y + 28 }, { x: a.x, y: a.y + 28 },
+      ], STYLE.wood);
+      // A small exposed cut end makes the exit readable above the basket's back rim.
+      polygon([
+        { x: b.x, y: b.y + 14 }, { x: b.x + direction * 7, y: b.y + 10 },
+        { x: b.x + direction * 7, y: b.y + 24 }, { x: b.x, y: b.y + 28 },
+      ], STYLE.woodLight);
+      g.lineStyle(3, STYLE.woodLight).lineBetween(a.x, a.y - 26, b.x, b.y - 26);
+      g.lineStyle(3, STYLE.woodLight).lineBetween(a.x, a.y + 14, b.x, b.y + 14);
+      for (const point of [a, { x: b.x - direction * 12, y: b.y - direction * 12 * slope }]) {
+        g.fillStyle(STYLE.woodDark).fillCircle(point.x, point.y + 21, 2.5);
+      }
     }
   }
 }

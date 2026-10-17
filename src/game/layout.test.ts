@@ -8,12 +8,16 @@ describe('Playable space for the future egg paths', () => {
     expect(LANES.map(lane => lane.id).sort()).toEqual(Array.from({ length: GAME_SETTINGS.laneCount }, (_, i) => i + 1));
   });
   it('keeps the whole egg clear of edges, rule, and controls along every lane', () => {
-    for (const lane of LANES) for (const progress of [0, 0.25, 0.5, 0.75, 1]) {
+    for (const lane of LANES) for (const progress of Array.from({ length: 21 }, (_, index) => index / 20)) {
       const p = positionOnLane(lane.id, progress);
       const radius = LAYOUT.egg.size / 2;
       expect(p.x - radius).toBeGreaterThan(0);
+      expect(p.y - radius).toBeGreaterThan(0);
       expect(p.x + radius).toBeLessThan(BOARD.width);
-      expect(p.y - radius).toBeGreaterThan(LAYOUT.rule.y + LAYOUT.rule.height / 2);
+      const overlapsRule = p.x + radius > LAYOUT.rule.x - LAYOUT.rule.width / 2
+        && p.x - radius < LAYOUT.rule.x + LAYOUT.rule.width / 2
+        && p.y - radius < LAYOUT.rule.y + LAYOUT.rule.height / 2;
+      expect(overlapsRule).toBe(false);
       expect(p.y + radius).toBeLessThan(LAYOUT.buttons.y - LAYOUT.buttons.height / 2);
     }
   });

@@ -2,7 +2,7 @@
 
 Datum: 2026-10-07
 
-Status 2026-10-13: Spelplanen är implementerad och automatiska kontroller passerar. Visuell slutkontroll, skärmbilder och prov på riktiga enheter återstår. Deluppgifterna lämnas öppna tills deras fullständiga färdigkriterier är kontrollerade. Se [VERIFIERING-03.md](VERIFIERING-03.md).
+Status 2026-10-17: Spelplanen är implementerad, publicerad som `996e751` och visuellt kontrollerad mot den publika adressen på dator-, surfplatte- och mobilytor. Deluppgifterna är avprickade; prov på riktiga surfplattor görs i uppgift 10. Se [VERIFIERING-03.md](VERIFIERING-03.md).
 
 Huvuduppgift: [03. Skapa spelplanen och den första grafiken i UPPGIFTER.md](UPPGIFTER.md#03-skapa-spelplanen-och-den-första-grafiken)
 
@@ -103,7 +103,7 @@ När layouten och den grafiska grunden finns kan varg, ägg och knappar byggas i
 
 ## 03.1 – Välja testytor och mål för läsbarhet
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Bestämma på vilka skärmytor punkt 3 ska godkännas och vad ”läsligt” innebär för prototypen.
 
@@ -133,7 +133,7 @@ Detta är projektets föreslagna startmål, som prövas vid implementationen. Mo
 
 ## 03.2 – Planera spelplanens ytor och koordinater
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Alla delar får plats utan att överlappa viktig information.
 
@@ -169,7 +169,7 @@ Beskriv särskilt rännornas start- och slutpunkter, vargens baspunkt, korgarnas
 
 ## 03.3 – Skapa och koppla in spelplansscenen
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Den nya spelplanen går att öppna och ersätter den tekniska startscenen i den aktuella förhandsvisningen.
 
@@ -187,7 +187,7 @@ Scenen ansvarar för att skapa och städa sina visuella objekt. Behåll projekte
 
 ## 03.4 – Samla färger, textstilar och grafiska mått
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Grafiken får ett enhetligt utseende som går att justera och ersätta.
 
@@ -205,7 +205,7 @@ Visuella storlekar hör till layouten och stilarna. Talintervall, antal rännor 
 
 ## 03.5 – Rita bakgrund och bestämma lagerordning
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Spelvärlden ger sammanhang och lämnar ägg, text och kontroller synliga.
 
@@ -219,7 +219,7 @@ Lämna plats för kommande återkoppling utan att lägga den ovanpå kategorikna
 
 ## 03.6 – Rita fyra rännor och beskriva deras banor
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Fyra tydligt åtskilda rännor kan återanvändas för äggens rörelse i punkt 4.
 
@@ -246,7 +246,7 @@ En enkel positionsfunktion kan ange var ägget ska ritas längs banan vid ett f�
 
 ## 03.7 – Skapa vargens prototypgrafik
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** En vänlig varg är tydligt spelets figur och går att animera senare.
 
@@ -262,7 +262,7 @@ Bestäm en neutral pose och tydliga fästpunkter för korgar eller armar. Förbe
 
 ## 03.8 – Skapa och märka de två korgarna
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Barnet kan se vilken korg som hör till varje kategori.
 
@@ -284,7 +284,7 @@ Håll flätmönstret enkelt och etikettens bakgrund lugn. Korgarna ska ha samma 
 
 ## 03.9 – Visa ett ägg med ett läsbart tal
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Ett ägg kan visa vilket heltal som helst inom 0–20 utan att siffrorna blir svårlästa.
 
@@ -302,7 +302,7 @@ Kontrollera särskilt `0`, `7`, `10` och `20`, både mitt på och nära ändarna
 
 ## 03.10 – Skapa de två stora kategoriknapparna
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** De två valen har tydliga, konsekventa knappar med gott om plats för framtida pekstyrning.
 
@@ -318,7 +318,7 @@ I denna förhandsvisning visas de som inaktiva val, med fortsatt läsliga etiket
 
 ## 03.11 – Visa regeln och ge återkoppling plats
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Barnet ser vad uppgiften handlar om och var återkopplingen kommer att visas.
 
@@ -334,7 +334,7 @@ Poäng, liv, kombo och nivå införs i punkt 6. Visa inga påhittade resultat el
 
 ## 03.12 – Sätta ihop en sammanhängande förhandsvisning
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Alla visuella delar fungerar tillsammans i en enda scen.
 
@@ -354,7 +354,7 @@ Scenen visar data men anropar ännu inte `answer` eller `reachEnd`. Inga poäng 
 
 ## 03.13 – Anpassa spelplan och omgivande sida till skärmen
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Spelplanen är användbar på testytorna, även när webbläsarens storlek eller orientering ändras.
 
@@ -376,7 +376,7 @@ Prova ändrad fönsterstorlek och båda surfplatteorienteringarna. Om de besluta
 
 ## 03.14 – Verifiera och dokumentera spelplanen
 
-- [ ] Klar
+- [x] Klar
 
 **Mål:** Visa att huvuduppgift 3 uppfyller sitt färdigkriterium och är redo att kopplas till grundloopen.
 

@@ -1,6 +1,6 @@
 # Kontrollprotokoll – uppgift 3
 
-Datum: 2026-10-13. Implementation finns lokalt. Visuell slutkontroll återstår; huvuduppgift 3 är ännu inte avprickad.
+Datum: 2026-10-13, kompletterat 2026-10-17. Implementationen är publicerad som `996e751` och visuellt kontrollerad mot den publika adressen. Huvuduppgift 3 är avprickad; prov på riktiga surfplattor förs över till uppgift 10 enligt tabellen över öppna val i `UPPGIFTER.md`.
 
 ## Justering av korgarna 2026-10-17
 
@@ -56,7 +56,33 @@ Vargens bildyta är 300 × 300 med mittpunkt (480, 278); synlig fotpunkt ungefä
 
 Återkoppling har en reserverad rad kring (480, 435), över knapparna. Bildbeskrivningar och originalmått finns i `docs/artwork-v1/ARTWORK.md`.
 
-## Kvarvarande visuell verifiering
+## Visuell kontroll mot publicerad version 2026-10-17
+
+Kontrollen gjordes i Claude-appens inbyggda webbläsare (Chromium) mot `https://egg.landychev.se/` efter ägarens `git pull` och `scripts/deploy.sh` på Debian. Sidan laddade `releases/996e751b…/assets/index-CPZlYhZm.js`, alltså samma commit som lokalt `main`. Skärmbilder sparades inte i repot.
+
+| Yta (CSS-pixlar) | Resultat | Canvas | Rullning |
+| --- | --- | --- | --- |
+| Dator 1280 × 720 | Spelplan: bakgrund, varg, fyra rännor, korgar med JÄMNT/UDDA, ägg med 12, regel, två inaktiva knappar | 1045 × 588 | Ingen |
+| Liggande surfplatta 1024 × 768 | Spelplan | 992 × 558 (som beräknat) | Ingen |
+| Stående surfplatta 768 × 1024 | Spelplan, läsbar | 736 × 414 (som beräknat) | Ingen |
+| Mobil 375 × 812 | Storlekshjälpen ”Lite mer plats för äggen!” | 0 × 0 | Ingen |
+
+- [x] Exakt en canvas i samtliga lägen, även efter omladdning.
+- [x] Levande storleksbyte 375 × 812 → 1024 × 768 utan omladdning: hjälpen försvann och spelplanen kom tillbaka med rätt mått, fortfarande en canvas.
+- [x] Alla sex resurser (JavaScript, CSS och fyra PNG) svarade `200` från den versionsspecifika sökvägen. Transparenskanter på varg, korgar och ägg såg rena ut mot bakgrunden.
+- [x] Konsolen innehöll bara Phasers versionsrad (`Phaser v4.2.1 (WebGL | Web Audio)`); inga fel eller varningar.
+- [x] `#build-version` visade `Version 996e751b`; `#preview-status` visade `Spelplanen tar form`.
+- [x] Inga utvecklingskontroller (`?inspect=1`) finns i produktionsbygget.
+
+Kontrollen ersätter den beräknade tabellen ovan med verkliga DOM-mått för tre av testytorna. Dator 1366 × 768 provades inte separat; den ligger mellan de kontrollerade ytorna.
+
+### Kvar till uppgift 10
+
+- Prova faktisk surfplatta och dator med pekskärm, notera enhet och webbläsare.
+- Granska `?inspect=1` lokalt vid behov (alla tal 0–20, alla banpositioner, knapputseenden). Produktionsbygget innehåller inte den vyn.
+- Kör projektets kontroller med Node 22.23.3 lokalt; servern byggde den publicerade versionen med sin Node 22.23.3.
+
+## Tidigare noterad visuell verifiering (2026-10-13)
 
 Webbläsarverktyget nekade tillgång till den lokala sidan eftersom dess administrativa säkerhetskontroll inte kunde verifieras. Ingen visuell webbläsarkontroll eller skärmbild kunde därför genomföras. Begränsningen kringgicks inte.
 
@@ -68,4 +94,4 @@ Webbläsarverktyget nekade tillgång till den lokala sidan eftersom dess adminis
 - Kör `npm run preview` och kontrollera det färdiga bygget visuellt. Spara representativa skärmbilder.
 - Prova faktisk dator och surfplatta. Notera enhet och webbläsare.
 
-Ingen commit, push eller serverpublicering ingår i detta steg. Rullande ägg, styrning och fångst-/felanimationer återstår i uppgift 4.
+Punkterna ovan är hanterade 2026-10-17 utom prov på riktiga enheter och den lokala `?inspect=1`-granskningen. Rullande ägg, styrning och fångst-/felanimationer återstår i uppgift 4.

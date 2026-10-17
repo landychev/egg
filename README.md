@@ -1,6 +1,6 @@
 # Egg Catcher
 
-Ett matematikspel i TypeScript och Phaser. Uppgift 1 ger en responsiv teknisk startscen. Uppgift 2 ger en testad regelkärna för jämnt/udda 0–20, träning/utmaning och en bedömning per ägg. Den synliga sidan visar nu spelplanen med varg, fyra rännor, två kategorikorgar och ett stillastående talägg. Punkt 3 är implementerad men väntar på visuell slutkontroll. Knapparna är inaktiva; själva spelet kopplas in i punkt 4.
+Ett matematikspel i TypeScript och Phaser. Uppgift 1 ger en responsiv teknisk startscen. Uppgift 2 ger en testad regelkärna för jämnt/udda 0–20, träning/utmaning och en bedömning per ägg. Den synliga sidan visar nu spelplanen med varg, fyra rännor, två kategorikorgar och ett stillastående talägg. Punkt 3 är publicerad och visuellt kontrollerad. Knapparna är inaktiva; själva spelet kopplas in i punkt 4, som har en egen detaljplan.
 
 ## Verktyg
 
@@ -76,11 +76,12 @@ Kontrollera och provspela ändringar före commit och push. Servern hämtar en e
 - [Detaljerade uppgifter 1](docs/detaljerade-uppgifter-1.md)
 - [Detaljerade uppgifter 2](docs/detaljerade-uppgifter-2.md)
 - [Detaljerade uppgifter 3](docs/detaljerade-uppgifter-3.md)
+- [Detaljerade uppgifter 4](docs/detaljerade-uppgifter-4.md)
 - [Verifiering av uppgift 2](docs/VERIFIERING-02.md)
-- [Implementation och kvarvarande verifiering av uppgift 3](docs/VERIFIERING-03.md)
+- [Verifiering av uppgift 3](docs/VERIFIERING-03.md)
 - [Grafik och bildbeskrivningar](docs/artwork-v1/ARTWORK.md)
 
-Referensdokumenten kopierades från projektmappen. Originalen där har inte ändrats. Aktuell implementationsstatus förs i kontrollprotokollet.
+`docs/` är den enda platsen för planer och protokoll; de tidigare kopiorna i projektmappens rot är borttagna 2026-10-17. Aktuell implementationsstatus förs i kontrollprotokollen.
 
 Verktygsreferenser: [Node.js LTS](https://nodejs.org/en/about/previous-releases), [Vites miljökrav](https://vite.dev/guide/), [Phaser-installation](https://docs.phaser.io/phaser/getting-started/installation).
 

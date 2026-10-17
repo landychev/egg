@@ -43,20 +43,20 @@ Detta verifierar skriptet i testmiljön. Publicering, felhantering, Apache och H
 
 - [x] `deploy.sh deploy` kördes som root: hämtning, `npm ci`, typkontroll och bygge av `20d8058` lyckades. Webbkontrollen före aktivering avbröt med `ERR_TLS_CERT_ALTNAME_INVALID` (certifikat för `donkey.landychev.se`), eftersom ingen HTTPS-vhost fanns för domänen. Aktiv version lämnades orörd – ett riktigt test av "stoppa före publicering".
 - [x] Åtgärd: mallen fick egen HTTPS-vhost i `<IfFile>`, och skriptet installerar nu konfigurationen och hämtar certifikat automatiskt (`configure_apache`). Provat i container med Apache 2.4: upprepad körning oförändrad, ändrad mall ersatt med backup, trasig mall återställd efter misslyckad configtest, HTTP 301 → HTTPS, `no-store`/`immutable` enligt plan. Integrationstestet (10 kontroller) passerade med `EGG_APACHE=0`.
-- [ ] Återstår: körning på den riktiga servern efter push.
+- [x] Körning på den riktiga servern: ägaren har publicerat `e0859a9` och `996e751` med `git pull` och `scripts/deploy.sh`. Se nedan.
 
 ## Kvar på Debian
 
-- [ ] **01.11:** återstående inventering, katalogbehörigheter för `www-data`, Apache VirtualHost och HTTPS.
-- [ ] **01.12:** riktig publicering genom skriptet och test av samtidighetslåset.
+- [x] **01.11:** Apache VirtualHost och HTTPS fungerar: `https://egg.landychev.se/` svarar med giltigt certifikat och levererar sidan. Katalogbehörigheter för `www-data` är inte kontrollerade från utsidan.
+- [ ] **01.12:** publicering genom skriptet är gjord av ägaren (versionssökvägen `releases/996e751b…/` syns i den publika sidan). Samtidighetslåset är inte provat på servern.
 - [ ] **01.13:** återstår att prova byggfel, automatisk/manuell återställning och rensning på den riktiga servern. Dessa serverprov är ännu inte utförda.
-- [ ] **01.14:** synlig ändring har gått från lokal dator via GitHub till den publika HTTPS-adressen; en äldre öppen session har provats.
+- [x] **01.14:** synlig ändring (spelplanen, `996e751`) har gått från lokal dator via GitHub till den publika HTTPS-adressen, kontrollerat 2026-10-17. Äldre öppen session över en uppdatering är inte provad separat.
 
 Serverinventering 2026-10-06, via ägarens kommandoutskrift: Debian 13.7 bekräftad; Apache listar flera aktiva webbplatser på port 80 och 443 men ingen VirtualHost för egg.landychev.se; Certbot listar inget certifikat för den domänen. En separat DNS-kontroll gav en A-post och ingen AAAA-post. HTTP svarade med 301 till HTTPS; korrekt webbplatsinnehåll och HTTPS-certifikat är fortfarande overifierade.
 
 Ägaren använder lösenordsinloggning; den tillgängliga SSH-nyckeln nekades. Ingen serverkonfiguration, DNS eller certifikat har ändrats. Ägaren har valt `/home/landy/github-proj/egg` för Git-klonen och `/var/www/egg` för publiceringen. Uppdateringar ska köras som root; Git körs som klonens ägare `landy` och webbträdet ägs av `www-data`. Serverutskriften bekräftar Node 22.23.3 och npm 10.9.9 från NodeSource. Certbot-plugin, publicering och katalogbehörigheter behöver fortfarande verifieras på servern.
 
-Hela huvuduppgift 1 är därför fortfarande öppen. [SERVER.md](SERVER.md) beskriver nästa steg.
+Kontroll från utsidan 2026-10-17: `https://egg.landychev.se/` svarade `200` med `index.html` som pekar på `releases/996e751bb2b1b02153dab08b894d8d023a388620/assets/`, det vill säga skriptets versionskatalog. Alla resurser svarade `200`. Huvuduppgift 1 hålls öppen tills återställning (01.13) och samtidighetslåset (01.12) har provats på servern; det är korta prov som kan göras vid nästa publicering. [SERVER.md](SERVER.md) beskriver kommandona.
 
 ## Känd bygginformation
 

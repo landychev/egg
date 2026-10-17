@@ -174,6 +174,8 @@ P4 och P5 kan starta samtidigt som våg 1 om de kodar mot kontrakten och tillfä
 | P7 | 04.10 | P6 |
 | P8 | 04.12, resten av 04.11 | P6, P7 |
 
+**Status 2026-10-17:** Våg 1 är klar och sammanslagen i `main`: P1 `78eab3d`, P2 `bde8000`, P3 `8586299` + `6dcc32a`. 197 tester gröna, typkontroll och bygge OK. Inga avvikelser från K1–K3; P2 exporterar dessutom `PHASES`, `FLOW_EVENTS` och `TRANSITIONS`. Nästa: våg 2 (P4, P5) – läs ”Från våg 1” i respektive paket.
+
 ---
 
 ## P1 – Inmatningslås
@@ -268,6 +270,8 @@ P4 och P5 kan starta samtidigt som våg 1 om de kodar mot kontrakten och tillfä
 **Rör inte:** `src/logic/*`, `src/game/layout.ts`, `src/game/eggMotion.ts`, `src/game/flow.ts`, `src/game/inputLock.ts`, `index.html`, `src/game/previewControls.ts`.
 **Förutsätter:** P1, P2, P3 sammanslagna i `main`.
 
+**Från våg 1:** Rotera bara skalbilden, inte containern: `shell.setRotation(pose.shellRotation)`. Värdet är i radianer, så inte `setAngle`. `inputLock` kastar `RangeError` för okända källor även i `release` och `isHeld`. Den manuella kontrollen kan göras i molnarbetsytan med `npx vite` och headless Chromium (Playwright), se `CLAUDE.md`.
+
 **Så löser du det:**
 
 1. **Scenens data och fält.** Lägg till `init(data: GameSceneData)` enligt K5. Fält: `round: Round`, `phase: Phase`, `activeEgg: Egg | null`, `motion: Phaser.Tweens.Tween | null`, `inputLock: InputLock`. I `create` skapas `round = createRound(mode)` och `phase = 'idle'`. Om `data.inspect` är sant stannar scenen i `idle` och beter sig som i dag; annars anropas `startLoop()` sist i `create`.
@@ -304,6 +308,12 @@ Loopen fortsätter inte till nästa ägg i det här paketet; det är avsiktligt.
 **Äger:** `src/game/resultEffects.ts`, `src/game/visualStyle.ts` (endast tillägg av färger/mått för effekter), `docs/artwork-v1/ARTWORK.md` (endast om en bildfil läggs till), `public/assets/images/` (endast nya filer).
 **Rör inte:** `src/scenes/*`, `src/logic/*`, `src/game/layout.ts`, `src/game/eggMotion.ts`.
 **Förutsätter:** P3 i `main` (för `catchTarget`, `crackTarget`, `feedbackText`).
+
+**Från våg 1 (P3):** `LAYOUT.ground.y` = 404 (vargens marklinje, `wolf.baseY`), `LAYOUT.basketOpening.offsetY` = 36 (mitten av korgens mörka öppning), vilket ger `catchTarget` y = 302.
+
+- `crackTarget` hamnar vid foten av korgen på samma sida som rännan (rännorna 1–2 ligger över vänster korg, 3–4 över höger). Rita det fallande och spruckna ägget framför korgen, annars kan ett fel svar se ut som en fångst.
+- Ett helt ägg (100 px) på `ground.y` täcker y 354–454: korgskyltens nederkant, återkopplingsraden och 2 px av knapparna. Platta till det spruckna ägget till ungefär 50 px höjd.
+- Vid `catchTarget` täcker ett helt ägg korgens framkant. Krymp ägget när det åker in, eller lägg det bakom korgens framkant.
 
 **Så löser du det:**
 

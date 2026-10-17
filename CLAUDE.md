@@ -15,11 +15,13 @@ Matematikspel för barn 7–9 år: en varg fångar ägg med tal 0–20 som rulla
 
 ## Nästa steg
 
-1. **04.1** styrning och inmatningslås (`src/game/inputLock.ts` + test)
-2. **04.2** loopens faser (`src/game/flow.ts` + test)
-3. **04.3** rullande ägg längs rännan
+Uppgift 04 är uppdelad i åtta arbetspaket i `docs/arbetspaket-04.md`, med gemensamma gränssnitt (avsnittet **Kontrakt**) så att paketen kan byggas parallellt av olika agenter.
 
-Detaljplanen för 04 finns i `docs/detaljerade-uppgifter-4.md`; läs bara det avsnitt som jobbas på (`grep -n '^## 04\.' docs/detaljerade-uppgifter-4.md` ger radnummer).
+1. **Våg 1** – P1 `inputLock`, P2 `flow`, P3 `eggMotion` + layout-tillägg (rena moduler, parallellt)
+2. **Våg 2** – P4 scen: rulla/svara/knappar, P5 `resultEffects` (parallellt)
+3. **Våg 3** – P6 integration (en agent), sedan P7 sida/README och P8 verifiering
+
+Att skicka ett paket till en agent: kopiera ”Instruktion till varje agent” + ”Kontrakt” + det aktuella paketet ur `arbetspaket-04.md`. Läs själv bara det paket som är aktuellt; detaljplanen `detaljerade-uppgifter-4.md` är bakgrund.
 
 ## Öppna punkter som väntar på Aleksei
 

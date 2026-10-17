@@ -2,7 +2,7 @@
 
 Datum: 2026-10-17
 
-Status: Arbetsplan. Ingen deluppgift är påbörjad.
+Status: Arbetsplan. Ingen deluppgift är påbörjad. Deluppgifterna är fördelade på åtta arbetspaket med gränssnittskontrakt i [arbetspaket-04.md](arbetspaket-04.md); det dokumentet används när arbetet delas ut till flera agenter.
 
 Huvuduppgift: [04. Göra grundloopen spelbar i UPPGIFTER.md](UPPGIFTER.md#04-göra-grundloopen-spelbar)
 

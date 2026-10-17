@@ -77,6 +77,7 @@ Kontrollera och provspela ändringar före commit och push. Servern hämtar en e
 - [Detaljerade uppgifter 2](docs/detaljerade-uppgifter-2.md)
 - [Detaljerade uppgifter 3](docs/detaljerade-uppgifter-3.md)
 - [Detaljerade uppgifter 4](docs/detaljerade-uppgifter-4.md)
+- [Arbetspaket för uppgift 4](docs/arbetspaket-04.md)
 - [Verifiering av uppgift 2](docs/VERIFIERING-02.md)
 - [Verifiering av uppgift 3](docs/VERIFIERING-03.md)
 - [Grafik och bildbeskrivningar](docs/artwork-v1/ARTWORK.md)

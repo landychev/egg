@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { BOARD, LANES, LAYOUT, positionOnLane } from './layout';
 import { STYLE } from './visualStyle';
 import { GAME_SETTINGS } from '../logic/settings';
+import { catchTarget, crackTarget } from './layout';
+import type { Choice } from '../logic/types';
 
 describe('Playable space for the future egg paths', () => {
   it('covers every rule lane once', () => {
@@ -39,5 +41,36 @@ describe('Playable space for the future egg paths', () => {
     expect(LAYOUT.buttons.width * BOARD.minScale).toBeGreaterThanOrEqual(140);
     expect(LAYOUT.buttons.height * BOARD.minScale).toBeGreaterThanOrEqual(56);
     expect(LAYOUT.buttons.rightX - LAYOUT.buttons.leftX).toBeGreaterThan(LAYOUT.buttons.width);
+  });
+});
+
+describe('Targets for caught and cracked eggs', () => {
+  const inside = (p: { x: number; y: number }): boolean => p.x > 0 && p.x < BOARD.width && p.y > 0 && p.y < BOARD.height;
+
+  it('catches inside the chosen basket opening, below every lane end, so the catch always moves down', () => {
+    for (const choice of ['left', 'right'] as const) {
+      const target = catchTarget(choice);
+      const basket = LAYOUT.baskets[choice];
+      expect(inside(target)).toBe(true);
+      expect(target.x).toBe(basket.x);
+      expect(target.y).toBeLessThan(basket.y);
+      expect(target.y).toBeGreaterThan(basket.y - LAYOUT.baskets.size / 2);
+      for (const lane of LANES) expect(target.y).toBeGreaterThan(lane.end.y);
+    }
+  });
+  it('cracks straight below each lane end, on the ground and above the feedback line', () => {
+    for (const lane of LANES) {
+      const target = crackTarget(lane.id);
+      expect(inside(target)).toBe(true);
+      expect(target.x).toBe(lane.end.x);
+      expect(target.y).toBe(LAYOUT.ground.y);
+      expect(target.y).toBeGreaterThan(lane.end.y);
+      expect(target.y).toBeLessThan(LAYOUT.feedback.y);
+    }
+    expect(Math.abs(LAYOUT.ground.y - LAYOUT.wolf.baseY)).toBeLessThanOrEqual(LAYOUT.egg.size / 2);
+  });
+  it('rejects unknown lanes and invalid choices', () => {
+    for (const lane of [0, 5, 1.5, NaN]) expect(() => crackTarget(lane)).toThrow(RangeError);
+    for (const choice of ['up', 'size', '', 'toString']) expect(() => catchTarget(choice as Choice)).toThrow(RangeError);
   });
 });
